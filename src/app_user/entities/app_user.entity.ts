@@ -43,7 +43,7 @@ export class AppUser {
   userRoles: UserRole[];
 
 
-  @OneToMany(() => UserFile, (userFile) => userFile.uploadBy, {
+  @OneToMany(() => UserFile, (userFile) => userFile.user, {
     cascade: ['remove' , 'soft-remove' , 'insert' , 'update' , 'recover'], 
     eager: false, 
     lazy: true,

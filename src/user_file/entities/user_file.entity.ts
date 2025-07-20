@@ -7,6 +7,7 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
   Unique,
+  JoinColumn,
 } from 'typeorm';
 import { AppUser } from '../../app_user/entities/app_user.entity';
 import { FileUpload } from '../../file-upload/entities/file-upload.entity';
@@ -17,10 +18,19 @@ export class UserFile {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => AppUser, (user) => user.userFiles, { onDelete: 'CASCADE' })
+  @Column({ type: 'uuid', nullable: true })
+  user_id: string;
+
+  @ManyToOne(() => AppUser, (user) => user.userFiles, { onDelete: 'CASCADE' , lazy:true })
+  @JoinColumn({ name: 'user_id' })
   user: AppUser;
 
-  @ManyToOne(() => FileUpload, (file) => file.userFiles, { onDelete: 'CASCADE' })
+
+  @Column({ type: 'uuid', nullable: true })
+  file_id: string;
+
+  @ManyToOne(() => FileUpload, (file) => file.userFiles, { onDelete: 'CASCADE' , lazy:true })
+  @JoinColumn({ name: 'file_id' })
   file: FileUpload;
 
   @Column({ type: 'varchar', length: 50, nullable: true })

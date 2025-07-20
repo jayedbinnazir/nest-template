@@ -14,7 +14,12 @@ export class AppUserController {
 
         console.log("profile-picture", profile_picture)
        try {
-        const user = await this.appUserService.create(createAppUserDto);
+
+        if(!profile_picture){
+            throw new BadRequestException("Profile picture is required");
+        }
+
+        const user = await this.appUserService.createWithProfilePicture(createAppUserDto , profile_picture);
         return {
             message: "User created successfully",
             user

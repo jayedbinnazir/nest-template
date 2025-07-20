@@ -1,10 +1,20 @@
 import { Injectable } from '@nestjs/common';
-import { CreateUserFileDto } from './dto/create-user_file.dto';
-import { UpdateUserFileDto } from './dto/update-user_file.dto';
+import { CreateUserFileDto } from '../dto/create-user_file.dto';
+import { UpdateUserFileDto } from '../dto/update-user_file.dto';
+import { UserFile } from '../entities/user_file.entity';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+
 
 @Injectable()
 export class UserFileService {
-  create(createUserFileDto: CreateUserFileDto) {
+
+  constructor(
+    @InjectRepository(UserFile)
+    private readonly userFileRepository: Repository<UserFile>,
+  ){}
+
+  createUserFile(createUserFileDto: CreateUserFileDto) {
     return 'This action adds a new userFile';
   }
 

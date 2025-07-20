@@ -6,6 +6,7 @@ import { FileUploadService } from './services/file-upload.service';
 import { FileUploadController } from './controllers/file-upload.controller';
 import { FileUpload } from './entities/file-upload.entity';
 import { createMulterConfig } from './multer.config';
+import { UserFileModule } from 'src/user_file/user_file.module';
 
 
 @Module({
@@ -35,6 +36,7 @@ import { createMulterConfig } from './multer.config';
         });
       },
     }),
+    UserFileModule
   ],
   controllers: [FileUploadController],
   providers: [FileUploadService],

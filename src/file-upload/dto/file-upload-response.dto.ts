@@ -17,3 +17,10 @@ export class FileUploadResponseDto {
   updatedAt: Date;
   deletedAt?: Date;
 }
+
+export class FileUploadListResponseDto {
+  items: FileUploadResponseDto[];
+  total: number;
+  page: number;
+  limit: number;
+}

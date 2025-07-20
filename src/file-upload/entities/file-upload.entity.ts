@@ -21,7 +21,7 @@ export enum FileType {
 export enum StorageProvider {
   LOCAL = 'local',
   S3 = 's3',
-  CLOUDINARY='cloudinary'
+  CLOUDINARY = 'cloudinary',
 }
 
 @Entity('file_upload')

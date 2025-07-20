@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { UserFileService } from './user_file.service';
-import { CreateUserFileDto } from './dto/create-user_file.dto';
-import { UpdateUserFileDto } from './dto/update-user_file.dto';
+import { CreateUserFileDto } from '../dto/create-user_file.dto';
+import { UpdateUserFileDto } from '../dto/update-user_file.dto';
+import { UserFileService } from '../services/user_file.service';
 
 @Controller('user-file')
 export class UserFileController {
@@ -9,7 +9,7 @@ export class UserFileController {
 
   @Post()
   create(@Body() createUserFileDto: CreateUserFileDto) {
-    return this.userFileService.create(createUserFileDto);
+    return this.userFileService.createUserFile(createUserFileDto);
   }
 
   @Get()
