@@ -5,7 +5,7 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './stratigy/jwt.strategy';
 import { JwtCookieStrategy } from './stratigy/jwt-cookie.strategy';
-import { AppUserModule } from 'src/app_user/app_user.module';
+import { AppUserModule } from '../app_user/app_user.module';
 import { UserRoleModule } from '../user_role/user_role.module';
 import { AuthController } from './controllers/auth.controller';
 

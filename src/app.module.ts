@@ -18,6 +18,8 @@ import { UserRoleModule } from './user_role/user_role.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AppDataSource } from 'data-source';
+import { AwsS3Module } from './aws-s3/aws-s3.module';
+import { UserFileModule } from './user_file/user_file.module';
 import configuration from 'Config/configuration';
 
 
@@ -60,6 +62,8 @@ import configuration from 'Config/configuration';
     }),
     RoleModule,
     UserRoleModule,
+    AwsS3Module,
+    UserFileModule,
  
   ],
   controllers: [AppController, HealthController],

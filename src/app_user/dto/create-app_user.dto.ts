@@ -29,5 +29,8 @@ export class CreateAppUserDto {
   @IsString()
   address?: string;
 
+  @IsOptional()
+  @IsString()
+  profile_picture?:string
 }
 

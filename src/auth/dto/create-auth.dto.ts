@@ -1,4 +1,4 @@
-import { CreateAppUserDto } from "src/app_user/dto/create-app_user.dto";
+import { CreateAppUserDto } from '../../app_user/dto/create-app_user.dto';
 
 
 

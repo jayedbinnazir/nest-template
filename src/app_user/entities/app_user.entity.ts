@@ -11,6 +11,7 @@ import {
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { UserRole } from '../../user_role/entities/user_role.entity';
+import { UserFile } from '../../user_file/entities/user_file.entity';
 
 @Entity('app_user')
 @Index(['email']) // Index for email lookups
@@ -40,6 +41,15 @@ export class AppUser {
     eager: true, 
   })
   userRoles: UserRole[];
+
+
+  @OneToMany(() => UserFile, (userFile) => userFile.uploadBy, {
+    cascade: ['remove' , 'soft-remove' , 'insert' , 'update' , 'recover'], 
+    eager: false, 
+    lazy: true,
+  })
+  userFiles: Promise<UserFile[]>;
+
   //Dtae Related columns
   @CreateDateColumn({
     type: 'timestamptz',
