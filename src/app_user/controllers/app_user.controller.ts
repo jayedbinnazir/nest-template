@@ -11,22 +11,19 @@ export class AppUserController {
     @UseInterceptors(FileInterceptor("profile_picture"))
     @Post("create")
     async create(@UploadedFile() profile_picture:Express.Multer.File ,@Body() createAppUserDto: CreateAppUserDto) {
-
-        console.log("profile-picture", profile_picture)
-       try {
-
-        if(!profile_picture){
-            throw new BadRequestException("Profile picture is required");
+        console.log("profile_picture in controller:", profile_picture);
+        try {
+            if(!profile_picture){
+                throw new BadRequestException("Profile picture is required. Make sure the field name is 'profile_picture' and the request is multipart/form-data.");
+            }
+            const user = await this.appUserService.createWithProfilePicture(createAppUserDto , profile_picture);
+            return {
+                message: "User created successfully",
+                user
+            }
+        } catch (error) {    
+            throw new BadRequestException(error.message);
         }
-
-        const user = await this.appUserService.createWithProfilePicture(createAppUserDto , profile_picture);
-        return {
-            message: "User created successfully",
-            user
-        }
-       } catch (error) {    
-        throw new BadRequestException(error.message);
-       }
     }
 
 

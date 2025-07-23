@@ -62,19 +62,23 @@ export const defaultFileUploadConfig: FileUploadConfig = {
 
 export const createMulterConfig = (config: Partial<FileUploadConfig> = {}): MulterModuleOptions => {
   const finalConfig = { ...defaultFileUploadConfig, ...config };
-  
+  console.log("finalConfig--------<", finalConfig);
+  console.log("createMulterConfig called of multer.config.ts");
   return {
     storage: diskStorage({
       destination: (req, file, cb) => {
+        console.log("destination called of multer.config.ts");
+
         // Create year/month based folder structure
         const date = new Date();
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const uploadPath = join(process.cwd(), finalConfig.uploadPath, String(year), month);
-        
+        console.log("uploadPath--------<", uploadPath);
         // Ensure directory exists
         const fs = require('fs');
         if (!fs.existsSync(uploadPath)) {
+          console.log("uploadPath not exists, creating it");
           fs.mkdirSync(uploadPath, { recursive: true });
         }
         cb(null, uploadPath);

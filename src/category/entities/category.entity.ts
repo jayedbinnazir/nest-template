@@ -1,3 +1,4 @@
+import { CategoryProduct } from 'src/category_products/entities/category_product.entity';
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, OneToMany, RelationId } from 'typeorm';
 
 @Entity({name:'category'})
@@ -16,6 +17,12 @@ export class Category {
 
     @Column({type:'varchar', nullable:true , default:null})
     image?:string | null = null;
+
+
+    @OneToMany(()=>CategoryProduct , (category_product)=>category_product.categories , {
+      cascade:['insert', 'recover', 'soft-remove', 'remove'],
+    })
+    categoryProducts:CategoryProduct[];
 
 
     @CreateDateColumn({

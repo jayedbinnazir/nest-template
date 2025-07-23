@@ -26,7 +26,7 @@ export class UserRole {
   role_id: string;
 
   @ManyToOne(() => Role, (role) => role.userRoles, {
-    onDelete: 'CASCADE',
+    onDelete: 'SET NULL',
     lazy: true,
   })
   @JoinColumn({ name: 'role_id' , referencedColumnName: 'id' })

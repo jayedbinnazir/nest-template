@@ -12,6 +12,7 @@ import {
 import { Exclude } from 'class-transformer';
 import { UserRole } from '../../user_role/entities/user_role.entity';
 import { UserFile } from '../../user_file/entities/user_file.entity';
+import { Product } from 'src/product/entities/product.entity';
 
 @Entity('app_user')
 @Index(['email']) // Index for email lookups
@@ -37,7 +38,7 @@ export class AppUser {
   address?: string | null = null;
 
   @OneToMany(() => UserRole, (userRole) => userRole.user, {
-    cascade: ['remove' , 'soft-remove'], 
+    cascade: [ 'soft-remove' , 'insert' ,'recover' , 'remove'], 
     eager: true, 
   })
   userRoles: UserRole[];
@@ -49,6 +50,13 @@ export class AppUser {
     lazy: true,
   })
   userFiles: Promise<UserFile[]>;
+
+
+  @OneToMany(() => Product, product => product.user , {
+    lazy:true,
+    cascade:true
+  })
+  products: Product[];
 
   //Dtae Related columns
   @CreateDateColumn({

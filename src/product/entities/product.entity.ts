@@ -7,8 +7,12 @@ import {
   DeleteDateColumn,
   Index,
   OneToMany,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { Expose } from 'class-transformer';
+import { CategoryProduct } from 'src/category_products/entities/category_product.entity';
+import { AppUser } from 'src/app_user/entities/app_user.entity';
 
 // import { Expose } from 'class-transformer';
 
@@ -53,10 +57,9 @@ export class Product {
   @Column({
     type: 'text', // or 'json'
     nullable: false, // Disallow NULL in DB
-    default: '[]',  // ✅ DB default as JSON string
+    default: '[]', // ✅ DB default as JSON string
     transformer: {
-      to: (value: string[] | null | undefined) => 
-        JSON.stringify(value ?? []), // Handle null/undefined → '[]'
+      to: (value: string[] | null | undefined) => JSON.stringify(value ?? []), // Handle null/undefined → '[]'
       from: (value: string) => JSON.parse(value), // DB → TS array
     },
   })
@@ -65,16 +68,13 @@ export class Product {
   @Column({
     type: 'text', // or 'json'
     nullable: false, // Disallow NULL in DB
-    default: '[]',  // ✅ DB default as JSON string
+    default: '[]', // ✅ DB default as JSON string
     transformer: {
-      to: (value: string[] | null | undefined) => 
-        JSON.stringify(value ?? []), // Handle null/undefined → '[]'
+      to: (value: string[] | null | undefined) => JSON.stringify(value ?? []), // Handle null/undefined → '[]'
       from: (value: string) => JSON.parse(value), // DB → TS array
     },
   })
   image_gallery: string[] = []; // ✅ TS default
-
-
 
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
   created_at: Date;
@@ -85,9 +85,28 @@ export class Product {
   @DeleteDateColumn({ type: 'timestamptz', name: 'deleted_at' })
   deleted_at: Date | null;
 
+  @OneToMany(
+    () => CategoryProduct,
+    (category_product) => category_product.products,
+    {
+      cascade: ['insert', 'recover', 'soft-remove', 'remove'],
+      lazy: true,
+    },
+  )
+  categoryProducts: CategoryProduct[];
+
+  @Column({ name: 'user_id' })
+  user_id: string;
+
+  @ManyToOne(() => AppUser, (user) => user.products , {
+    onDelete:"CASCADE"
+  })
+  @JoinColumn({ name: 'user_id' })
+  user: AppUser;
+
   // getters
   @Expose()
-  display_price(): string|number {
+  display_price(): string | number {
     if (this.price > 0) {
       return this.price;
     }
@@ -98,7 +117,7 @@ export class Product {
   @Expose()
   display_stock_quantity(): number | string {
     if (this.stock_quantity > 0) {
-      return this.stock_quantity 
+      return this.stock_quantity;
     }
     return 'Out of Stock';
   }

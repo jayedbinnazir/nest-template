@@ -25,10 +25,10 @@ export class Role {
   description: string;
 
   @OneToMany(() => UserRole, (userRole) => userRole.role, {
-    cascade: ['remove' , 'soft-remove'], // Usually false, unless you want Role to control UserRole lifecycle
-    eager: true,
+    cascade: ['soft-remove' , 'insert' , 'recover' ],
+    lazy:true // Usually false, unless you want Role to control UserRole lifecycle
   })
-  userRoles: UserRole[];
+  userRoles: Promise<UserRole[]>;
 
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
   created_at: Date;

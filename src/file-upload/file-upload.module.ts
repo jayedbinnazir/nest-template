@@ -16,9 +16,11 @@ import { UserFileModule } from 'src/user_file/user_file.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
+        console.log("usefactory called of file-upload.module.ts");
+        console.log("process.cwd()--------<", process.cwd()+'/public/uploads');
         return createMulterConfig({
           maxFileSize: 2 * 1024 * 1024 * 1024, // 2GB default
-          uploadPath: 'public/uploads',
+          uploadPath: process.cwd() + '/public/uploads',
           allowedMimeTypes: [
             'image/jpeg',
             'image/jpg',

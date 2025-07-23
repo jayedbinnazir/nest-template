@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUserFileDto } from '../dto/create-user_file.dto';
 import { UpdateUserFileDto } from '../dto/update-user_file.dto';
 import { UserFile } from '../entities/user_file.entity';
@@ -15,7 +15,12 @@ export class UserFileService {
   ){}
 
   createUserFile(createUserFileDto: CreateUserFileDto) {
-    return 'This action adds a new userFile';
+    try {
+      const userFile = this.userFileRepository.create(createUserFileDto);
+      return this.userFileRepository.save(userFile);
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
   }
 
   findAll() {
