@@ -1,82 +1,32 @@
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  CreateDateColumn,
-  UpdateDateColumn,
-  DeleteDateColumn,
-  Index,
-  Unique,
-  OneToMany,
-} from 'typeorm';
-import { Exclude } from 'class-transformer';
-import { UserRole } from '../../user_role/entities/user_role.entity';
-import { UserFile } from '../../user_file/entities/user_file.entity';
-import { Product } from 'src/product/entities/product.entity';
+import { User } from '../../user/entities/user.entity';
+import { BaseEntity } from '../../common/base.entity';
+import { Role } from '../../role/entities/role.entity';
+import { Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn, Index, Column } from 'typeorm';
 
-@Entity('app_user')
-@Index(['email']) // Index for email lookups
-@Unique(['email']) // Ensure email uniqueness
-export class AppUser {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+@Entity('app_users')
+@Index('IDX_USER_ROLE_USER_ID', ['user_id'])
+@Index('IDX_USER_ROLE_ROLE_ID', ['role_id'])
+@Index('IDX_USER_ROLE_COMPOSITE', ['user_id', 'role_id'], { unique: true })
+export class AppUser extends BaseEntity {
 
-  @Column({ type: 'varchar', length: 30, nullable: false, name: 'name' })
-  name: string;
+  @Column({ type: 'uuid', name:'user_id' })
+  user_id: string;
 
-  @Column({ type: 'varchar', length: 30, nullable: false, name: 'email' })
-  email: string;
-
-  @Column({ type: 'varchar', length: 255, nullable: false, name: 'password' })
-  @Exclude() // Exclude password from responses
-  password: string;
-
-  @Column({ type: 'varchar', length: 20, nullable: true, default:null, name: 'phone' })
-  phone?: string | null = null;
-
-  @Column({ type: 'varchar', length: 500, nullable: true, default:null, name: 'address' })
-  address?: string | null = null;
-
-  @OneToMany(() => UserRole, (userRole) => userRole.user, {
-    cascade: [ 'soft-remove' , 'insert' ,'recover' , 'remove'], 
-    eager: true, 
-  })
-  userRoles: UserRole[];
-
-
-  @OneToMany(() => UserFile, (userFile) => userFile.user, {
-    cascade: ['remove' , 'soft-remove' , 'insert' , 'update' , 'recover'], 
-    eager: false, 
+  @ManyToOne(() => User, (user) => user.appUsers, {
+    onDelete: 'CASCADE',
     lazy: true,
   })
-  userFiles: Promise<UserFile[]>;
+  @JoinColumn({ name: 'user_id' , referencedColumnName: 'id' })
+  user: Promise<User>;
 
 
-  @OneToMany(() => Product, product => product.user , {
-    lazy:true,
-    cascade:true
+  @Column({ type: 'uuid', name:'role_id' })
+  role_id: string;
+
+  @ManyToOne(() => Role, (role) => role.appUsers, {
+    onDelete: 'SET NULL',
+    lazy: true,
   })
-  products: Product[];
-
-  //Dtae Related columns
-  @CreateDateColumn({
-    type: 'timestamptz',
-    nullable: false,
-    name: 'created_at',
-  })
-  created_at: Date;
-
-  @UpdateDateColumn({
-    type: 'timestamptz',
-    nullable: false,
-    name: 'updated_at',
-  })
-  updated_at: Date;
-
-  @DeleteDateColumn({
-    type: 'timestamptz',
-    nullable: true,
-    name: 'deleted_at',
-  })
-  deleted_at: Date | null;
+  @JoinColumn({ name: 'role_id' , referencedColumnName: 'id' })
+  role: Promise<Role>;
 }
