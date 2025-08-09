@@ -35,8 +35,18 @@ export class UserService {
 
   async findOne(id: string): Promise<User | null> {
     try {
-      return await this.userRepository.findOne({ where: { id } });
-    } catch (error) {
+      return await this.userRepository.createQueryBuilder('user')
+      .leftJoinAndSelect('user.files', 'file')
+      .select([
+        'user.name',
+        'user.email',
+        
+        
+        "file.local_url",
+      ])
+        .where('user.id = :id', { id })
+        .getOne();
+    }catch (error) {
       throw new Error(`Error finding user: ${error.message}`);
     }
   }

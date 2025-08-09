@@ -14,6 +14,8 @@ import { AppService } from './app.service';
 import { AppDataSource } from 'data-source';
 import { AwsS3Module } from './aws-s3/aws-s3.module';
 import { UserModule } from './user/user.module';
+import { ProductModule } from './product/product.module';
+import { FilesModule } from './files/files.module';
 import configuration from 'Config/configuration';
 
 
@@ -48,11 +50,14 @@ import configuration from 'Config/configuration';
       inject: [ConfigService],
       useFactory: ()=>AppDataSource.options,
     }),
+    FilesModule, // Added missing AuthModule
     RoleModule,
     AwsS3Module,
     AppUserModule,
     UserModule,
-    AuthModule, // Added missing AuthModule
+    AuthModule,
+    ProductModule,
+    
 
   ],
   controllers: [AppController, HealthController],

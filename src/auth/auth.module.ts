@@ -8,9 +8,16 @@ import { AuthController } from './controllers/auth.controller';
 import { RoleModule } from '../role/role.module';
 import { UserModule } from '../user/user.module';
 import { AuthUtils } from './utils/auth';
+import { MulterModule } from '@nestjs/platform-express';
+import { ConfigModule } from '@nestjs/config';
+import { MulterConfigService } from 'src/files/services/multer.config.service';
 
 @Module({
   imports: [
+   MulterModule.registerAsync({
+         imports: [ConfigModule],
+         useClass: MulterConfigService,
+       }),
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'your_jwt_secret',
       signOptions: { expiresIn: '24h' },

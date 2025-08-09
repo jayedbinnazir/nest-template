@@ -10,6 +10,7 @@ import { AuthUtils, PayLoad } from "../utils/auth";
 import { CreateAuthDto } from "../dto/create-auth.dto";
 import { LoginDto } from "../dto/login.dto";
 import { DataSource } from "typeorm";
+import { FilesService } from "../../files/services/files.service";
 
 
 @Injectable()
@@ -21,11 +22,12 @@ export class AuthService {
         private readonly roleService:RoleService,
         private readonly appUserService:AppUserService,
         //utils
-        private readonly authUtils:AuthUtils
+        private readonly authUtils:AuthUtils,
+        private readonly fileService: FilesService
 
     ) {}
 
-    async registerUser(data:CreateAuthDto) {
+    async registerUser(data:CreateAuthDto ,  file?: Express.Multer.File) {
 
         const queryRunner  =  this.dataSource.createQueryRunner();
         await queryRunner.connect();
@@ -46,10 +48,16 @@ export class AuthService {
             if (!user) {
                 throw new Error('User creation failed');
             }
+
+            console.log('User created:', user);
             const role =  await this.roleService.findByName("CUSTOMER");
             if (!role) {
                 throw new Error('Role not found');
             }
+
+            // File upload is optional during registration
+            const newFile = file ? await this.fileService.saveFileRecord(file, user.id, queryRunner.manager) : null;
+
 
             const appUser = await this.appUserService.createAppUser({
                 user_id:user.id,

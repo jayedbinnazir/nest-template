@@ -8,10 +8,12 @@ import {
   Index,
   Unique,
   OneToMany,
+  OneToOne,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { BaseEntity } from '../../common/base.entity';
 import { AppUser } from '../../app_user/entities/app_user.entity';
+import { FileUpload } from '../../files/entities/file.entity';
 
 @Entity('users')
 @Index(['email']) // Index for email lookups
@@ -29,10 +31,10 @@ export class User extends BaseEntity {
   password: string;
 
   @Column({ type: 'varchar', length: 20, nullable: true })
-  phone?: string | null = null;
+  phone?: string | null ;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
-  address?: string | null = null;
+  address?: string | null ;
 
   @OneToMany(() => AppUser, (appUser) => appUser.user, {
     cascade: [ 'soft-remove' , 'insert' ,'recover' , 'remove'], 
@@ -40,19 +42,12 @@ export class User extends BaseEntity {
   })
   appUsers: AppUser[];
 
-
-//   @OneToMany(() => UserFile, (userFile) => userFile.user, {
-//     cascade: ['remove' , 'soft-remove' , 'insert' , 'update' , 'recover'], 
-//     eager: false, 
-//     lazy: true,
-//   })
-//   userFiles: Promise<UserFile[]>;
-
-
-//   @OneToMany(() => Product, product => product.user , {
-//     lazy:true,
-//     cascade:true
-//   })
-//   products: Product[];
+  // Multiple files relationship (replaces the single profile_picture)
+  @OneToMany(() => FileUpload, (file) => file.user, {
+    cascade: ['insert', 'update', 'remove', 'soft-remove', 'recover'],
+    eager: false,
+    nullable: true,
+  })
+  files?: File[];
 
 }
