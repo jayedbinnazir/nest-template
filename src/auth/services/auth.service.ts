@@ -27,11 +27,13 @@ export class AuthService {
 
     ) {}
 
-    async registerUser(data:CreateAuthDto ,  file?: Express.Multer.File) {
+    async registerUser(data:CreateAuthDto) {
 
         const queryRunner  =  this.dataSource.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
+
+        const { file } = data;
 
         try {
             
@@ -55,8 +57,10 @@ export class AuthService {
                 throw new Error('Role not found');
             }
 
+            // Assuming you want to use the DTO directly
+
             // File upload is optional during registration
-            const newFile = file ? await this.fileService.saveFileRecord(file, user.id, queryRunner.manager) : null;
+            const newFile = file ? await this.fileService.saveFileRecord(file, user.id, undefined, queryRunner.manager) : null;
 
 
             const appUser = await this.appUserService.createAppUser({
@@ -178,5 +182,4 @@ export class AuthService {
             throw new Error(`Login failed: ${error.message}`);
         }
     }
-
 }

@@ -17,9 +17,12 @@ export class AuthController {
     @Post('register')
     @HttpCode(HttpStatus.CREATED) // 201 - Resource created successfully
     @UseInterceptors(FileInterceptor('profile_pic')) // Assuming you want to handle file uploads
-    async register(@Body() createAuthDto: CreateAuthDto, @Res({ passthrough: true }) res: Response , @UploadedFile() file: Express.Multer.File) {
+    async register(@Body() createAuthDto: CreateAuthDto, @Res({ passthrough: true }) res: Response , @UploadedFile() file?: Express.Multer.File) {
+        if(file){
+            createAuthDto.file = file; // Assign the uploaded file to the DTO
+        }
        try {
-             const result = await this.authService.registerUser(createAuthDto ,  file);
+             const result = await this.authService.registerUser(createAuthDto);
         
         // Set cookie for cookie-based authentication
         res.cookie('access_token', result.access_token, {

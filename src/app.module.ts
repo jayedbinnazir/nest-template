@@ -16,6 +16,8 @@ import { AwsS3Module } from './aws-s3/aws-s3.module';
 import { UserModule } from './user/user.module';
 import { ProductModule } from './product/product.module';
 import { FilesModule } from './files/files.module';
+import { CategoryModule } from './category/category.module';
+import { ProductCategoryModule } from './product-category/product-category.module';
 import configuration from 'Config/configuration';
 
 
@@ -57,6 +59,8 @@ import configuration from 'Config/configuration';
     UserModule,
     AuthModule,
     ProductModule,
+    CategoryModule,
+    ProductCategoryModule,
     
 
   ],

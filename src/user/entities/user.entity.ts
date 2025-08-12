@@ -14,6 +14,7 @@ import { Exclude } from 'class-transformer';
 import { BaseEntity } from '../../common/base.entity';
 import { AppUser } from '../../app_user/entities/app_user.entity';
 import { FileUpload } from '../../files/entities/file.entity';
+import { Product } from '../../product/entities/product.entity';
 
 @Entity('users')
 @Index(['email']) // Index for email lookups
@@ -48,6 +49,13 @@ export class User extends BaseEntity {
     eager: false,
     nullable: true,
   })
-  files?: File[];
+  profile_picture?: FileUpload[];
 
+
+  @OneToMany(() => Product, (product) => product.user, {
+    cascade: ['insert', 'update', 'remove', 'soft-remove', 'recover'],
+    eager: false,
+    nullable: true,
+  })
+  products: Product[];
 }

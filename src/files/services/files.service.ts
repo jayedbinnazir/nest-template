@@ -16,7 +16,13 @@ export class FilesService {
     private readonly multerConfigService: MulterConfigService,
   ) {}
 
-  async saveFileRecord(file:Express.Multer.File , userId:string , manager?:EntityManager): Promise<FileUpload> {
+  async saveFileRecord(file:Express.Multer.File , userId?:string , productId?:string , manager?:EntityManager): Promise<FileUpload> {
+    console.log("file service called with file:", file);
+    console.log({
+      userId,
+      productId,
+      filePath: file?.path,
+    })
     try {
 
       const repo = manager ? manager.getRepository(FileUpload) : this.fileRepository;
@@ -45,7 +51,8 @@ export class FilesService {
       // Create the file entity from DTO
       const fileEntity = repo.create({
         ...fileDto,
-        user: {id: userId} , // This sets the user relationship, which automatically populates user_id via @RelationId
+        user: {id:userId} , // This sets the user relationship, which automatically populates user_id via @RelationId
+        product: {id: productId} // This sets the product relationship, which automatically populates product_id via @RelationId
       });
       
       
