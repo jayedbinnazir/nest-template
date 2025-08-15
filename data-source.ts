@@ -26,7 +26,7 @@ export const AppDataSource = new DataSource({
   password: config.password,
   database: config.database,
   entities: [path.join(__dirname, 'src', '**', '*.entity.{ts,js}')], // Corrected entity path
-  migrations: [path.join(__dirname, '..', 'migrations', '*.{ts,js}')], // Use 'migration' folder in root directory
+  migrations: [path.join(__dirname, 'migrations', '*.{ts,js}')], // Use 'migration' folder in root directory
   migrationsTableName: 'migrations',
   logging: config.logging,
   logger: config.logger as any,

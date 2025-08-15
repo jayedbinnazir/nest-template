@@ -1,122 +1,121 @@
-import { Expose, Transform } from 'class-transformer';
-import {
-  IsArray,
-  IsInt,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsPositive,
-  IsString,
-  MaxLength,
-  Min,
-  MinLength,
-  ValidateIf,
-} from 'class-validator';
+import { ArrayMaxSize, IsArray, IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from "class-validator";
+import { Transform } from "class-transformer";
 
 export class CreateProductDto {
-  @IsString({ message: 'Name must be a string' })
-  @IsNotEmpty({ message: 'Name is required' })
-  @MinLength(2, { message: 'Name must be at least 2 characters long' })
-  @MaxLength(50, { message: 'Name must be less than 50 characters' })
-  name: string;
 
-  @Transform(({ value }) => {
-    if (value === null || value === undefined || value === '') {
-      return null;
-    }
-    return value;
-  })
-  @ValidateIf(o => o.description !== null)
-  @IsString({ message: 'Description must be a string' })
-  @MaxLength(1000, { message: 'Description must be less than 1000 characters' })
-  description?: string;
-
-  // "" => 0 , null => 0 , undefined => 0 , NaN => 0 , Infinity => 0 , -Infinity => 0
-
- 
-  @Transform(({ value }) => {
-    if (value === null || value === undefined || value === '') {
-      return 0;
-    }
-    else if(typeof value === 'string'){
-      const num = parseFloat(value);
-      return Number.isNaN(num) ? value : num;
-    }
-  })
-  @IsNumber(
-    { allowInfinity: false, allowNaN: false },
-    { message: 'Price must be a number' },
-  )
-  @Min(0, { message: 'Price must be zero or a positive integer' })
-  price?: number = 0;
+    @IsNotEmpty({ message: 'Name is required' })
+    @IsString({ message: 'Name must be a string' })
+    name: string; // Example: "Elf Bar 5000 Puff", "Mango Ice E-liquid 60ml"
 
 
-  @Transform(({ value }) => {
-    if (value === null || value === undefined || value === '') {
-      return 0;
-    } else if(typeof value === 'string'){
-      const num = parseFloat(value);
-      return Number.isNaN(num) ? value : num;
-    }
-    return value;
-  })
-  @IsNumber(
-    { allowInfinity: false, allowNaN: false },
-    { message: 'Stock quantity must be a number' },
-  )
-  @IsInt({ message: 'Stock quantity must be an integer' })
-  @Min(0, { message: 'Stock quantity must be zero or a positive integer' })
-  stock_quantity: number = 0;
+    @Transform(({ value }) => {
+        if (value === "" || value === undefined || value === null) {
+            return null;
+        }
+        return String(value);
+    })
+    @IsOptional()
+    @IsString({ message: 'Description must be a string' })
+    importedFrom?: string; // Example: "China", "USA"
 
 
-  @Transform(({ value }) => {
-    if (value === null || value === undefined || value === '') {
-      return 0;
-    } else if(typeof value === 'string'){
-      const num = parseFloat(value);
-      return Number.isNaN(num) ? value : num;
-    }
-    return value;
-  })
-  @IsNumber(
-    { allowInfinity: false, allowNaN: false },
-    { message: 'Stock quantity must be a number' },
-  )
-  @IsInt({ message: 'Sold quantity must be an integer' })
-  @Min(0, { message: 'Sold quantity must be zero or a positive integer' })
-  sold_quantity: number = 0;
 
-  @Transform(({ value }) => {
-    if (value === null || value === undefined || value === '') {
-      return 0;
-    } else if(typeof value === 'string'){
-      const num = parseFloat(value);
-      return Number.isNaN(num) ? value : num;
-    }
-    return value;
-  })
-  @IsNumber(
-    { allowInfinity: false, allowNaN: false },
-    { message: 'view count must be a number' },
-  )
-  @IsInt({ message: 'view count must be an integer' })
-  @Min(0, { message: 'view count must be zero or a positive integer' })
-  view_count: number = 0;
+    @Transform(({ value }) => {
+        if (value === "" || value === undefined || value === null) {
+            return null;
+        }
+        return String(value);
+    })
+    @IsOptional()
+    @IsString({ message: 'Description must be a string' })
+    description?: string | null;
 
-  @IsOptional() // Field is optional
-  @IsArray() // If provided, must be an array
-  @IsString({ each: true }) // Each element must be a string
-  available_colors?: string[]; // Optional in TS
- 
 
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  image_gallery?: string[] | null = []; // ✅ Optional + nullable
+    @Transform(({ value }) => {
 
-  @Expose()
-  display_Price: string;
+        if (value === "" || value === undefined || value === null) {
+            return null;
+        }
 
-  @Expose()
-  display_stock_quantity: string;
+        const num = Number(value);
+        console.log("Transformed price value:", typeof num)
+
+        // If it's not a valid number, keep it as is so validation will fail
+        return isNaN(num) ? value : num;
+    })
+    // @IsOptional()
+    @IsNumber({ allowNaN: false, allowInfinity: false }, { message: 'Price must be a valid number' })
+    @Min(0, { message: 'Price must be greater than or equal to 0' })
+    price: number;
+
+    @Transform(({ value }) => {
+        console.log("Transforming quantity value:", value);
+        if (value === "" || value === undefined || value === null) {
+            return 0; // Default to 0 if not provided
+        }
+        const num = Number(value);
+        console.log("Transformed price value:", typeof num)
+        // If it's not a valid number, keep it as is so validation will fail
+        return isNaN(num) ? value : num;
+    })
+    @IsNumber({ allowNaN: false, allowInfinity: false }, { message: 'Price must be a valid number' })
+    @Min(0, { message: 'Price must be greater than or equal to 0' })
+    quantity?: number; // Example: 100, 50, 200
+
+
+    @Transform(({ value }) => {
+        if (value === "true" || value === true) return true;
+        if (value === "false" || value === false) return false;
+        return value; // Let validation handle invalid values
+    })
+    @IsBoolean({ message: 'Availability must be a boolean' })
+    isAvailable: boolean;
+
+    @Transform(({ value }) => {
+        if (value === "" || value === undefined || value === null) {
+            return null;
+        }
+        return String(value);
+    })
+    @IsOptional()
+    @IsString({ message: 'brand must be a string value' })
+    brand?: string | null; // Example: "Vaporesso", "Elf Bar", "SMOK"
+
+
+
+    @Transform(({ value }) => {
+        if (value === "" || value === undefined || value === null) {
+            return null;
+        }
+        return String(value);
+    })
+    @IsOptional()
+    @IsString({ message: 'Nicotine strength must be string value' })
+    nicotineStrength?: string | null; // Example: "3mg", "20mg", "50mg"
+
+    @Transform(({ value }) => {
+        if (value === "" || value === undefined || value === null) {
+            return null;
+        }
+        return String(value);
+    })
+    @IsOptional()
+    @IsString({ message: 'flavour must be a string value' })
+    flavor?: string; // Example: "Mango Ice", "Cool Mint"
+
+
+    // Add any additional fields as necessary
+    @IsOptional() // Make this optional since it's set in the controller
+    @IsString({ message: 'User ID must be a string' })
+    user_id?: string; // The ID of the user creating the product
+
+    @IsNotEmpty()
+    @IsString()
+    category_id: string
+
+    @IsArray()
+    @ArrayMaxSize(4, { message: 'Maximum 4 images allowed' })
+    @IsOptional()
+    product_images?: Express.Multer.File[]   // The file uploaded for the product image
+
 }

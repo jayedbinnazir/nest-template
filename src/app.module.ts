@@ -1,11 +1,6 @@
 import { Module } from '@nestjs/common';
-
 import { AuthModule } from './auth/auth.module';
 import { AppUserModule } from './app_user/app_user.module';
-import { ProductModule } from './product/product.module';
-
-import { CategoryModule } from './category/category.module';
-import { FileUploadModule } from './file-upload/file-upload.module';
 import { ConfigModule } from '@nestjs/config';
 import { TerminusModule } from '@nestjs/terminus';
 import { HealthController } from './health.controller';
@@ -14,21 +9,20 @@ import { ConfigService } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
 import { CustomExceptionFilter } from './exceptions/custom-exception.filter';
 import { RoleModule } from './role/role.module';
-import { UserRoleModule } from './user_role/user_role.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AppDataSource } from 'data-source';
+import { AwsS3Module } from './aws-s3/aws-s3.module';
+import { UserModule } from './user/user.module';
+import { ProductModule } from './product/product.module';
+import { FilesModule } from './files/files.module';
+import { CategoryModule } from './category/category.module';
+import { ProductCategoryModule } from './product-category/product-category.module';
 import configuration from 'Config/configuration';
 
 
 @Module({
   imports: [
-    AuthModule,
-    AppUserModule,
-    ProductModule,
- 
-    CategoryModule,
-    FileUploadModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: (() => {
@@ -58,9 +52,17 @@ import configuration from 'Config/configuration';
       inject: [ConfigService],
       useFactory: ()=>AppDataSource.options,
     }),
+    FilesModule, // Added missing AuthModule
     RoleModule,
-    UserRoleModule,
- 
+    AwsS3Module,
+    AppUserModule,
+    UserModule,
+    AuthModule,
+    ProductModule,
+    CategoryModule,
+    ProductCategoryModule,
+    
+
   ],
   controllers: [AppController, HealthController],
   providers: [AppService,{

@@ -1,41 +1,16 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, OneToMany, RelationId } from 'typeorm';
+import { ProductCategory } from "../../product-category/entities/product-category.entity";
+import { BaseEntity } from "../../common/base.entity";
+import {  Column, Entity, ManyToOne, OneToMany } from "typeorm";
 
-@Entity({name:'category'})
-export class Category {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+@Entity({ name: 'categories' })
+export class Category extends BaseEntity {
 
+    @Column({ type: 'varchar', length: 50 })
+    name: string; // Example: "E-liquids", "Vape Devices", "Accessories"
 
-    @Column({type:'varchar', length:20, nullable:false, unique:true})
-    name:string ;
+    @Column({type: 'varchar', length: 300, nullable: true })
+    description?: string | null; // Example: "Wide range of e-liquids", "Latest vape devices", "Vape accessories and parts"
 
-
-    @Column({type:'varchar', length:20, nullable:true , default:null})
-    description?:string | null = null;
-
-
-    @Column({type:'varchar', nullable:true , default:null})
-    image?:string | null = null;
-
-
-    @CreateDateColumn({
-        type: 'timestamptz',
-        nullable: false,
-        name: 'created_at',
-      })
-      created_at: Date;
-    
-      @UpdateDateColumn({
-        type: 'timestamptz',
-        nullable: false,
-        name: 'updated_at',
-      })
-      updated_at: Date;
-    
-      @DeleteDateColumn({
-        type: 'timestamptz',
-        nullable: true,
-        name: 'deleted_at',
-      })
-      deleted_at?: Date | null;
+    @OneToMany(() => ProductCategory , (x) =>x.category )
+    product_category : ProductCategory[]; // Example: "E-liquids" can have subcategories like "Fruity", "Minty", etc.  
 }

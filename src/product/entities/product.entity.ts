@@ -1,105 +1,71 @@
+// src/entities/product.entity.ts
+import { ProductCategory } from '../../product-category/entities/product-category.entity';
+import { BaseEntity } from '../../common/base.entity';
 import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  UpdateDateColumn,
-  DeleteDateColumn,
-  Index,
-  OneToMany,
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    ManyToOne,
+    CreateDateColumn,
+    UpdateDateColumn,
+    JoinColumn,
+    RelationId,
+    OneToMany,
 } from 'typeorm';
-import { Expose } from 'class-transformer';
+import { User } from '../../user/entities/user.entity';
+import { FileUpload } from '../../files/entities/file.entity';
 
-// import { Expose } from 'class-transformer';
+@Entity({ name: 'products' })
+export class Product extends BaseEntity {
 
-@Entity({ name: 'product' })
-export class Product {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+    @Column()
+    name: string; // Example: "Elf Bar 5000 Puff", "Mango Ice E-liquid 60ml"
 
-  @Column({ type: 'varchar', length: 50, nullable: false })
-  @Index()
-  name: string;
+    @Column({ type: "varchar", nullable: true })
+    importedFrom?: string | null; // Example: "China", "USA"
 
-  @Column({ type: 'text', nullable: true })
-  description?: string;
+    @Column({ type: 'varchar', length: 300, nullable: true })
+    description?: string | null;
 
-  @Column({
-    type: 'numeric',
-    precision: 10,
-    scale: 2,
-    nullable: false,
-    default: 0, // Defaults to 0 if not provided
-    transformer: {
-      to: (value: number): string => {
-        return value.toString();
-      },
-      from: (value: string): number => {
-        return parseFloat(value);
-      },
-    },
+    @Column('decimal', { precision: 10, scale: 2, nullable: true ,default: 0})
+    price: number ;
+
+    @Column({type:"int", default: 0})
+    quantity: number; // Example: 100, 50, 200
+
+    @Column({ default: true })
+    isAvailable: boolean;
+
+    @Column({ type: 'varchar', length: 20 , nullable: true })
+    brand?: string|null; // Example: "Vaporesso", "Elf Bar", "SMOK"
+
+    @Column({  type:"varchar" , nullable: true })
+    nicotineStrength?: string|null; // Example: "3mg", "20mg", "50mg"
+
+    @Column({ nullable: true , type: 'varchar' , length: 50 })
+    flavor?: string|null; // Example: "Mango Ice", "Cool Mint"
+
+
+
+    //relationships
+    @OneToMany(() => ProductCategory , (x)=>x.product)
+    product_category: ProductCategory[];
+
+
+    //relation withn User
+    @ManyToOne(()=> User ,  (user)=>user.products)
+    @JoinColumn({name : 'user_id' , referencedColumnName: 'id'})
+    user: User;
+
+    @RelationId ((product: Product) => product.user)
+    user_id: string;
+
+
+    @OneToMany(()=> FileUpload , (file)=> file.product ,{
+    cascade: ['insert', 'update', 'remove', 'soft-remove', 'recover'],
+    eager: false,
+    nullable: true,
   })
-  price: number = 0;
+    product_images: FileUpload[]; // Assuming multiple images can be associated with a product
 
-  @Column({ type: 'int', nullable: false, default: 0 })
-  stock_quantity: number = 0;
-
-  @Column({ type: 'int', nullable: true })
-  sold_quantity?: number;
-
-  @Column({ type: 'int', nullable: false, default: 0 })
-  view_count: number = 0;
-
-  @Column({
-    type: 'text', // or 'json'
-    nullable: false, // Disallow NULL in DB
-    default: '[]',  // ✅ DB default as JSON string
-    transformer: {
-      to: (value: string[] | null | undefined) => 
-        JSON.stringify(value ?? []), // Handle null/undefined → '[]'
-      from: (value: string) => JSON.parse(value), // DB → TS array
-    },
-  })
-  available_colors: string[] = []; // Initialize as null (optional)
-
-  @Column({
-    type: 'text', // or 'json'
-    nullable: false, // Disallow NULL in DB
-    default: '[]',  // ✅ DB default as JSON string
-    transformer: {
-      to: (value: string[] | null | undefined) => 
-        JSON.stringify(value ?? []), // Handle null/undefined → '[]'
-      from: (value: string) => JSON.parse(value), // DB → TS array
-    },
-  })
-  image_gallery: string[] = []; // ✅ TS default
-
-
-
-  @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
-  created_at: Date;
-
-  @UpdateDateColumn({ type: 'timestamptz', name: 'updated_at' })
-  updated_at: Date;
-
-  @DeleteDateColumn({ type: 'timestamptz', name: 'deleted_at' })
-  deleted_at: Date | null;
-
-  // getters
-  @Expose()
-  display_price(): string|number {
-    if (this.price > 0) {
-      return this.price;
-    }
-    return 'Coming Soon';
-  }
-
-  // Yes, this code is okay. It returns the stock quantity as a string if it exists, otherwise it returns 'Coming Soon'.
-  @Expose()
-  display_stock_quantity(): number | string {
-    if (this.stock_quantity > 0) {
-      return this.stock_quantity 
-    }
-    return 'Out of Stock';
-  }
 }

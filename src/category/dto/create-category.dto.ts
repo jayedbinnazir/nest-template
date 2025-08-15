@@ -1,19 +1,19 @@
-import { IsNotEmpty, IsOptional, IsString, MaxLength, ValidateIf } from "class-validator";
+import { Transform } from "class-transformer";
+import { IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 export class CreateCategoryDto {
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(20)
-  name: string;
 
-  @IsOptional()
-  @ValidateIf((o) => o.description !== undefined && o.description !== null && o.description !== '')
-  @IsString()
-  @MaxLength(20)
-  description?: string;
+    @IsNotEmpty({ message: 'Name is required' })
+    @IsString()
+    name: string;
 
-  @IsOptional()
-  @ValidateIf((o) => o.image !== undefined && o.image !== null && o.image !== '')
-  @IsString()
-  image?: string;
+    @Transform(({ value }) => {
+        if (value === "" || value === undefined || value === null) {
+            return null;
+        }
+        return String(value);
+    })
+    @IsOptional()
+    @IsString({ message: 'flavour must be a string value' })
+    description?: string | null; // Optional description for the category
 }
