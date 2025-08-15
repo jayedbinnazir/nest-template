@@ -1,4 +1,4 @@
-import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from "class-validator";
+import { ArrayMaxSize, IsArray, IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from "class-validator";
 import { Transform } from "class-transformer";
 
 export class CreateProductDto {
@@ -32,7 +32,7 @@ export class CreateProductDto {
 
 
     @Transform(({ value }) => {
-       
+
         if (value === "" || value === undefined || value === null) {
             return null;
         }
@@ -111,9 +111,11 @@ export class CreateProductDto {
 
     @IsNotEmpty()
     @IsString()
-    category_id:string
+    category_id: string
 
+    @IsArray()
+    @ArrayMaxSize(4, { message: 'Maximum 4 images allowed' })
     @IsOptional()
-    product_images?: Express.Multer.File | null  // The file uploaded for the product image
-    
+    product_images?: Express.Multer.File[]   // The file uploaded for the product image
+
 }

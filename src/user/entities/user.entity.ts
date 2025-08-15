@@ -39,17 +39,15 @@ export class User extends BaseEntity {
 
   @OneToMany(() => AppUser, (appUser) => appUser.user, {
     cascade: [ 'soft-remove' , 'insert' ,'recover' , 'remove'], 
-    eager: false, 
   })
   appUsers: AppUser[];
 
   // Multiple files relationship (replaces the single profile_picture)
   @OneToMany(() => FileUpload, (file) => file.user, {
     cascade: ['insert', 'update', 'remove', 'soft-remove', 'recover'],
-    eager: false,
     nullable: true,
   })
-  profile_picture?: FileUpload[];
+  profile_pictures?: FileUpload[];
 
 
   @OneToMany(() => Product, (product) => product.user, {

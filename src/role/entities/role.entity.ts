@@ -21,9 +21,9 @@ export class Role extends BaseEntity {
   description: string;
 
   @OneToMany(() => AppUser, (appUser) => appUser.role, {
-    cascade: ['soft-remove' , 'insert' , 'recover' ],
-    lazy:true // Usually false, unless you want Role to control AppUser lifecycle
+    cascade: ['insert' , 'recover' ],
+     // Usually false, unless you want Role to control AppUser lifecycle
   })
-  appUsers: Promise<AppUser[]>;
+  appUsers: AppUser[];
 
 }

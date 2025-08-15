@@ -31,8 +31,8 @@ export class ProductService {
     console.log("create product service called")
     console.log("createProductDto in service", createProductDto);
     try {
-      const { user_id, category_id, product_images , ...data } = createProductDto;
-      
+      const { user_id, category_id, product_images, ...data } = createProductDto;
+
       // First, verify category exists outside of entity creation
       const categoryRepo = queryRunner.manager.getRepository(Category);
       const category = await categoryRepo.findOne({
@@ -45,8 +45,8 @@ export class ProductService {
       const productRepo = queryRunner.manager.getRepository(Product);
       const product = productRepo.create({
         ...data,
-        user: {id:user_id}, // Use direct user_id instead of user object // Handle file upload if provided
-        
+        user: { id: user_id }, // Use direct user_id instead of user object // Handle file upload if provided
+
       });
       const savedProduct = await productRepo.save(product);
       if (!savedProduct) {
@@ -54,11 +54,15 @@ export class ProductService {
       }
       console.log("savedProduct in service", savedProduct);
 
-      // Handle file upload if provided 
-                  // File upload is optional during registration
-        const newFile = product_images ? await this.fileService.saveFileRecord(product_images, undefined, product.id, queryRunner.manager) : null;
-      if (newFile) {
-        console.log('File uploaded successfully:', newFile);
+      // Handle multiple file uploads - UPDATED THIS SECTION
+      if (product_images && product_images.length > 0) {
+        // Use the dedicated multiple files method
+        await this.fileService.saveMultipleFileRecords(
+          product_images,
+          user_id,
+          savedProduct.id,
+          queryRunner.manager
+        );
       }
 
       // Create product category relationship

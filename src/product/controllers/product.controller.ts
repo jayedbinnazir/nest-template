@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UseGuards, Req, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UseGuards, Req, UploadedFile, UploadedFiles } from '@nestjs/common';
 import { ProductService } from '../services/product.service';
 import { CreateProductDto } from '../dto/create-product.dto';
 import { UpdateProductDto } from '../dto/update-product.dto';
 import { JwtCookieGuard } from '../../auth/guards/jwt-cookie.guard';
-import { FileInterceptor } from "@nestjs/platform-express";
+import { FilesInterceptor } from "@nestjs/platform-express";
 
 
 @Controller('product')
@@ -12,18 +12,18 @@ export class ProductController {
 
   @UseGuards(JwtCookieGuard)
   @Post('create')
-  @UseInterceptors(FileInterceptor('product_images')) // Assuming 'product_images' is the field name for file upload
-  async create(@Req() req , @Body() createProductDto: CreateProductDto , @UploadedFile() file?: Express.Multer.File) {
+  @UseInterceptors(FilesInterceptor('product_images',4)) // Assuming 'product_images' is the field name for file upload
+  async create(@Req() req , @Body() createProductDto: CreateProductDto , @UploadedFiles() files?: Express.Multer.File[]) {
     console.log("=== PRODUCT CREATION START ===")
     console.log("create product controller called")
     console.log("Raw body received:", req.body);
     console.log("createProductDto in controller", createProductDto);
-    console.log("file in controller", file);
+    console.log("file in controller", files);
     console.log("DTO validation status: PASSED (if this logs)");
       const user = req["user"]
       console.log("user in product creation", user);
       createProductDto.user_id = user.id ;
-      createProductDto.product_images = file; // Assign the uploaded file to the DTO
+      createProductDto.product_images = files; // Assign the uploaded file to the DTO
       
       try {
 

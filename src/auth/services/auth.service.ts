@@ -17,27 +17,27 @@ import { FilesService } from "../../files/services/files.service";
 export class AuthService {
 
     constructor(
-        private readonly dataSource:DataSource,
-        private readonly userService:UserService,
-        private readonly roleService:RoleService,
-        private readonly appUserService:AppUserService,
+        private readonly dataSource: DataSource,
+        private readonly userService: UserService,
+        private readonly roleService: RoleService,
+        private readonly appUserService: AppUserService,
         //utils
-        private readonly authUtils:AuthUtils,
+        private readonly authUtils: AuthUtils,
         private readonly fileService: FilesService
 
-    ) {}
+    ) { }
 
-    async registerUser(data:CreateAuthDto) {
+    async registerUser(data: CreateAuthDto) {
 
-        const queryRunner  =  this.dataSource.createQueryRunner();
+        const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
 
         const { file } = data;
 
         try {
-            
-            if(data.password !== data.confirmPassword) {
+
+            if (data.password !== data.confirmPassword) {
                 throw new Error('Passwords do not match');
             }
 
@@ -45,31 +45,35 @@ export class AuthService {
             const user = await this.userService.createUser({
                 ...data,
                 password: hashedPassword,
-            } , queryRunner.manager);
+            }, queryRunner.manager);
 
             if (!user) {
                 throw new Error('User creation failed');
             }
 
             console.log('User created:', user);
-            const role =  await this.roleService.findByName("CUSTOMER");
+            const role = await this.roleService.findByName("CUSTOMER");
             if (!role) {
                 throw new Error('Role not found');
             }
 
-            // Assuming you want to use the DTO directly
-
-            // File upload is optional during registration
-            const newFile = file ? await this.fileService.saveFileRecord(file, user.id, undefined, queryRunner.manager) : null;
+           
+                await this.fileService.saveMultipleFileRecords(
+                    [file],
+                    user.id,
+                    undefined,
+                    queryRunner.manager
+                );
+            
 
 
             const appUser = await this.appUserService.createAppUser({
-                user_id:user.id,
-                role_id:role.id,
+                user_id: user.id,
+                role_id: role.id,
             },
-            queryRunner.manager);
+                queryRunner.manager);
 
-            if(!appUser) {
+            if (!appUser) {
                 throw new Error('App user creation failed');
             }
             await queryRunner.commitTransaction();
@@ -79,7 +83,7 @@ export class AuthService {
             if (appUserData.length === 0) {
                 throw new Error('App user not found after creation');
             }
-            
+
             // Extract all roles for this user
             const roles: string[] = [];
             for (const appUserRecord of appUserData) {
@@ -88,7 +92,7 @@ export class AuthService {
                     roles.push(roleEntity.name);
                 }
             }
-            
+
             const payload: PayLoad = {
                 userId: user.id, // Use the actual user ID
                 email: user.email, // Get email directly from user
@@ -115,7 +119,7 @@ export class AuthService {
 
 
 
-        }catch (error) {
+        } catch (error) {
             await queryRunner.rollbackTransaction();
             throw new Error(`Error during registration: ${error.message}`);
         }
@@ -126,8 +130,15 @@ export class AuthService {
 
     async login(loginDto: LoginDto) {
         try {
+
+            const userRepo = this.dataSource.getRepository(User);
             // Find user by email
-            const user = await this.userService.findByEmail(loginDto.email);
+
+            const user  = await userRepo.findOne({
+                where: { email: loginDto.email },
+                relations: ['appUsers', 'appUsers.role', 'profile_pictures'],
+            });
+            
             if (!user) {
                 throw new Error('Invalid credentials');
             }
@@ -176,7 +187,7 @@ export class AuthService {
                     updated_at: user.updated_at,
                 },
                 access_token: token,
-                
+
             };
         } catch (error) {
             throw new Error(`Login failed: ${error.message}`);

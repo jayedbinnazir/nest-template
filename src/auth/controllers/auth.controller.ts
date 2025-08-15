@@ -17,10 +17,13 @@ export class AuthController {
     @Post('register')
     @HttpCode(HttpStatus.CREATED) // 201 - Resource created successfully
     @UseInterceptors(FileInterceptor('profile_pic')) // Assuming you want to handle file uploads
-    async register(@Body() createAuthDto: CreateAuthDto, @Res({ passthrough: true }) res: Response , @UploadedFile() file?: Express.Multer.File) {
+    async register(@Body() createAuthDto: CreateAuthDto, @Res({ passthrough: true }) res: Response , @UploadedFile() file: Express.Multer.File) {
         if(file){
+            console.log("file in auth controller", file);
             createAuthDto.file = file; // Assign the uploaded file to the DTO
         }
+
+        console.log("createAuthDto in controller=========>", createAuthDto);
        try {
              const result = await this.authService.registerUser(createAuthDto);
         
@@ -42,7 +45,9 @@ export class AuthController {
 
     @Post('login')
     async login(@Body() loginDto: LoginDto, @Res({ passthrough: true }) res: Response) {
-        const result = await this.authService.login(loginDto);
+       try {
+
+         const result = await this.authService.login(loginDto);
         
         // Set cookie for cookie-based authentication
         res.status(HttpStatus.OK); // Set status to 200 OK
@@ -55,6 +60,10 @@ export class AuthController {
         });
 
         return result;
+       } catch (error) {
+            console.error('Error during login:', error);
+            throw error; // Re-throw the error to be handled by global exception filter
+       }
     }
 
 

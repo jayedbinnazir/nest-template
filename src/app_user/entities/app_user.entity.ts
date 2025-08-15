@@ -27,6 +27,6 @@ export class AppUser extends BaseEntity {
     onDelete: 'SET NULL',
     lazy: true,
   })
-  @JoinColumn({ name: 'role_id' , referencedColumnName: 'id' })
+  @JoinColumn({ name: 'role_id' , referencedColumnName: 'id'  })
   role: Promise<Role>;
 }

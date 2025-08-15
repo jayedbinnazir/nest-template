@@ -14,58 +14,57 @@ export class FilesService {
     private readonly fileRepository: Repository<FileUpload>,
     private readonly configService: ConfigService,
     private readonly multerConfigService: MulterConfigService,
-  ) {}
+  ) { }
 
-  async saveFileRecord(file:Express.Multer.File , userId?:string , productId?:string , manager?:EntityManager): Promise<FileUpload> {
-    console.log("file service called with file:", file);
+  async saveMultipleFileRecords(files: Express.Multer.File[], userId?: string, productId?: string, manager?: EntityManager): Promise<FileUpload[]> {
+    console.log("file service called with file:", files);
     console.log({
       userId,
       productId,
-      filePath: file?.path,
+      filePath: files.map(file => file.path),
     })
     try {
 
       const repo = manager ? manager.getRepository(FileUpload) : this.fileRepository;
 
-      console.log('File to save:', file);
+      console.log('File to save:', files);
 
-      if (!file) {
+      if (!files || files.length === 0) {
         console.log('No file provided for upload');
         throw new BadRequestException('No file provided for upload');
       }
 
       console.log("-------user id", userId);
-      
-      const fileDto:CreateFileDto = {
-        fieldname: file.fieldname,
-        originalname: file.originalname,
-        encoding: file.encoding,
-        mimetype: file.mimetype,
-        size: file.size,
-        isActive: true,
-        local_url: file.path,
-         // Assuming user is an object with at least an id property
-        public_url: null, // Set to null initially, can be updated later
-      }
-      
-      // Create the file entity from DTO
-      const fileEntity = repo.create({
-        ...fileDto,
-        user: {id:userId} , // This sets the user relationship, which automatically populates user_id via @RelationId
-        product: {id: productId} // This sets the product relationship, which automatically populates product_id via @RelationId
+
+      const fileEntities = files.map(file => {
+        const fileDto: CreateFileDto = {
+          fieldname: file.fieldname,
+          originalname: file.originalname,
+          encoding: file.encoding,
+          mimetype: file.mimetype,
+          size: file.size,
+          isActive: true,
+          local_url: file.path,
+          public_url: null,
+        };
+
+        return repo.create({
+          ...fileDto,
+          user: { id: userId },
+          product: { id: productId }
+        });
       });
+
+      console.log("fileEntities to be saved:", fileEntities);
+      const savedFiles =  await repo.save(fileEntities);
+      return savedFiles;
       
-      
-      const savedFile = await repo.save(fileEntity);
-      console.log("Saved file with user_id:", savedFile.user_id);
-      
-      return savedFile;
     } catch (error) {
       // Only attempt to delete file if the file and path exist
-      if (file?.path) {
-        await this.multerConfigService.removeFile(file.path);
-      }
-      throw new BadRequestException(`Failed to save file record: ${error.message}`);
+      await Promise.all(files.map(file =>
+        file.path ? this.multerConfigService.removeFile(file.path) : Promise.resolve()
+      ));
+      throw new BadRequestException(`Failed to save file records: ${error.message}`);
     }
   }
 
@@ -76,12 +75,12 @@ export class FilesService {
   //   description?: string
   // ): Promise<File[]> {
   //   const savedFiles: File[] = [];
-    
+
   //   for (const file of files) {
   //     const savedFile = await this.saveFileRecord(file, category, userId, description);
   //     savedFiles.push(savedFile);
   //   }
-    
+
   //   return savedFiles;
   // }
 
@@ -115,19 +114,19 @@ export class FilesService {
 
   // async update(id: string, updateFileDto: UpdateFileDto): Promise<File> {
   //   const file = await this.findOne(id);
-    
+
   //   Object.assign(file, updateFileDto);
-    
+
   //   return await this.fileRepository.save(file);
   // }
 
   // async remove(id: string): Promise<void> {
   //   const file = await this.findOne(id);
-    
+
   //   // Soft delete in database
   //   file.isActive = false;
   //   await this.fileRepository.save(file);
-    
+
   //   // Optionally delete physical file
   //   if (existsSync(file.filePath)) {
   //     try {
