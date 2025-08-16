@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UseGuards, Req, UploadedFile, UploadedFiles } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UseGuards, Req, UploadedFile, UploadedFiles, Query } from '@nestjs/common';
 import { ProductService } from '../services/product.service';
 import { CreateProductDto } from '../dto/create-product.dto';
 import { UpdateProductDto } from '../dto/update-product.dto';
 import { JwtCookieGuard } from '../../auth/guards/jwt-cookie.guard';
 import { FilesInterceptor } from "@nestjs/platform-express";
+import { ProductQueryDto } from '../dto/productQuery.dto';
 
 
 @Controller('product')
@@ -35,9 +36,18 @@ export class ProductController {
       }
   }
 
-  @Get()
-  async findAll() {
-    return await this.productService.findAllProduct();
+  @Get("get-all")
+  async findAll( @Query() query: ProductQueryDto) {
+
+    console.log("query params in findAll", query);
+    try {
+      const allProducts =  await this.productService.findAllProduct(query);
+      return allProducts;
+    
+    } catch (error) {
+      console.error('Error in findAll:', error);
+      throw error; // Re-throw the error to be handled by global exception filter
+    }
   }
 
   @Get(':id')
@@ -55,7 +65,7 @@ export class ProductController {
     return this.productService.softRemoveemoveProduct(id);
   }
 
-  @Delete('/hardRemove/:id')
+  @Delete('/hard/:id')
   hardRemove(@Param('id') id: string) {
     return this.productService.hardRemove(id);
   }

@@ -117,4 +117,23 @@ export class UserController {
       throw error; // Re-throw the error to be handled by global exception filter
     }
   }
+
+  // @Post("assignRole/:userId")
+  // async assignRole(
+  //   @Param('userId') userId: string,
+  //   @Body("roleId") roleId:string,  
+  // ) {
+  //   try {
+  //     const result = await this.userService.assignRoleToUser(userId, roleId);
+  //     return {
+  //       message: 'Role assigned successfully',
+  //       result,
+  //       status: 'success',
+  //       code: HttpStatusCode.Ok,
+  //     };
+  //   } catch (error) {
+  //     console.error('Error in assignRole:', error);
+  //     throw error; // Re-throw the error to be handled by global exception filter
+  //   }
+  // }
 }

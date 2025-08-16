@@ -48,7 +48,9 @@ export class Product extends BaseEntity {
 
 
     //relationships
-    @OneToMany(() => ProductCategory , (x)=>x.product)
+    @OneToMany(() => ProductCategory , (x)=>x.product ,{
+    cascade: ['insert', 'update', 'remove', 'soft-remove', 'recover'],
+    })
     product_category: ProductCategory[];
 
 
@@ -63,9 +65,8 @@ export class Product extends BaseEntity {
 
     @OneToMany(()=> FileUpload , (file)=> file.product ,{
     cascade: ['insert', 'update', 'remove', 'soft-remove', 'recover'],
-    eager: false,
     nullable: true,
   })
-    product_images: FileUpload[]; // Assuming multiple images can be associated with a product
+    product_images?: FileUpload[]; // Assuming multiple images can be associated with a product
 
 }

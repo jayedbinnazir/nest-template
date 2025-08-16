@@ -117,5 +117,4 @@ export class CreateProductDto {
     @ArrayMaxSize(4, { message: 'Maximum 4 images allowed' })
     @IsOptional()
     product_images?: Express.Multer.File[]   // The file uploaded for the product image
-
 }
