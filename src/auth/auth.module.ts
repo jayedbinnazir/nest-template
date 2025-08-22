@@ -14,21 +14,22 @@ import { MulterConfigService } from 'src/files/services/multer.config.service';
 
 @Module({
   imports: [
-   MulterModule.registerAsync({
-         imports: [ConfigModule],
-         useClass: MulterConfigService,
-       }),
+    MulterModule.registerAsync({
+      imports: [ConfigModule],
+      useClass: MulterConfigService,
+    }),
+    PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'your_jwt_secret',
       signOptions: { expiresIn: '24h' },
     }),
-    PassportModule,
+    ConfigModule,
     AppUserModule,
     UserModule,
     RoleModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, AuthUtils,  JwtCookieStrategy],
+  providers: [AuthService, AuthUtils, JwtCookieStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}

@@ -8,5 +8,5 @@ export class CreateAuthDto extends CreateUserDto {
     @IsArray()
     @ArrayMaxSize(1, { message: 'You can upload a maximum of 1 files' })
     @IsOptional()
-    file: Express.Multer.File 
+    file?: Express.Multer.File | null; // Optional file upload field, can be null if no file is uploaded
 }

@@ -11,6 +11,8 @@ export interface DatabaseConfig {
   logger: string;
 }
 
+console.log("---------------(checking)--------------------->" , process.env.NODE_ENV);
+
 export default (): DatabaseConfig => ({
   type: process.env.DB_TYPE || 'postgres',
   url: process.env.DB_URL || '',

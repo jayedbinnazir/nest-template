@@ -41,7 +41,7 @@ export class AuthService {
                 throw new Error('Passwords do not match');
             }
 
-            const hashedPassword = await AuthUtils.hashPassword(data.password);
+            const hashedPassword = await AuthUtils.hashPassword(data.password as string);
             const user = await this.userService.createUser({
                 ...data,
                 password: hashedPassword,
@@ -59,7 +59,7 @@ export class AuthService {
 
            
                 await this.fileService.saveMultipleFileRecords(
-                    [file],
+                    [file as Express.Multer.File],
                     user.id,
                     undefined,
                     queryRunner.manager
@@ -144,7 +144,7 @@ export class AuthService {
             }
 
             // Verify password
-            const isPasswordValid = await AuthUtils.comparePassword(loginDto.password, user.password);
+            const isPasswordValid = await AuthUtils.comparePassword(loginDto.password as string, user.password as string);
             if (!isPasswordValid) {
                 throw new Error('Invalid credentials');
             }
@@ -191,6 +191,72 @@ export class AuthService {
             };
         } catch (error) {
             throw new Error(`Login failed: ${error.message}`);
+        }
+    }
+
+
+    async googleLogin(data: CreateAuthDto) {
+
+        try {
+            const { providerId , email } = data;
+            if (!email) {
+                throw new Error('Email is required for Google login');
+            }
+            // Check if user already exists
+            let user: CreateAuthDto | any = await this.userService.genericfindOne({providerId: providerId as string, email: email}, false);
+
+            if (!user) {
+                // Create new user if not exists
+                user = await this.userService.createUser({
+                    ...data,
+                });
+            }
+
+            if (!user) {
+                throw new Error('User creation failed');
+            }
+
+
+            const appUser = await this.appUserService.findAllByUserId(user.id);
+            if (!appUser || appUser.length === 0) {
+                throw new Error('App user not found');
+            }
+
+
+           
+            // Generate JWT token
+            const roles: string[] = [];
+           
+            for (const appUserRecord of appUser) {
+                const roleEntity = await appUserRecord.role; // Each appUserRecord has one role
+                if (roleEntity) {
+                    roles.push(roleEntity.name);
+                }
+            }
+            const payload: PayLoad = {
+                userId: user.id,
+                email: user.email,
+                roles: roles,
+            };
+            const token = await this.authUtils.generateToken(payload);
+            // Return user data and token
+            return {
+                success: true,
+                message: 'Google login successful',
+                user: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    phone: user.phone,
+                    address: user.address,
+                    created_at: user.created_at,
+                    updated_at: user.updated_at,
+                    profile_picture: user.profile_pictures ? user.profile_pictures[0]?.url : null,
+                },
+                access_token: token,
+            };
+        } catch (error) {
+            throw new Error(`Google login failed: ${error.message}`);
         }
     }
 }

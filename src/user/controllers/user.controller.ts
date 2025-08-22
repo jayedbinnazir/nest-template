@@ -40,6 +40,7 @@ export class UserController {
     try {
       const userId = req.user['id']; // Assuming user ID is stored in the request object
       console.log('Finding user with ID:', userId);
+      console.log('Request user:', req.user);
       return {
         status: 'success',
         code: HttpStatusCode.Ok,

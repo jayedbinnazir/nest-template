@@ -1,4 +1,5 @@
 
+console.log("---------------(checking)- in application config-------------------->" , process.env.NODE_ENV);
 
 export default () => ({
     port: process.env.PORT || 3000,
