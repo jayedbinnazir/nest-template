@@ -9,35 +9,36 @@ import { Roles } from "../../app_user/decorators/roles.decorator";
 import * as fs from 'fs';
 import * as path from "path";
 import { FileInterceptor } from "@nestjs/platform-express";
+import { GoogleAuthGuard } from "../guards/google-auth.guard";
 
 @Controller('auth')
 export class AuthController {
-    constructor(private readonly authService: AuthService) {}
+    constructor(private readonly authService: AuthService) { }
 
     @Post('register')
     @HttpCode(HttpStatus.CREATED) // 201 - Resource created successfully
     @UseInterceptors(FileInterceptor('profile_pic')) // Assuming you want to handle file uploads
-    async register(@Body() createAuthDto: CreateAuthDto, @Res({ passthrough: true }) res: Response , @UploadedFile() file: Express.Multer.File) {
-        if(file){
+    async register(@Body() createAuthDto: CreateAuthDto, @Res({ passthrough: true }) res: Response, @UploadedFile() file: Express.Multer.File) {
+        if (file) {
             console.log("file in auth controller", file);
             createAuthDto.file = file; // Assign the uploaded file to the DTO
         }
 
         console.log("createAuthDto in controller=========>", createAuthDto);
-       try {
-             const result = await this.authService.registerUser(createAuthDto);
-        
-        // Set cookie for cookie-based authentication
-        res.cookie('access_token', result.access_token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: 24 * 60 * 60 * 1000, // 24 hours
-            path: '/',
-        });
+        try {
+            const result = await this.authService.registerUser(createAuthDto);
 
-        return result;
-       } catch (error) {
+            // Set cookie for cookie-based authentication
+            res.cookie('access_token', result.access_token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 24 * 60 * 60 * 1000, // 24 hours
+                path: '/',
+            });
+
+            return result;
+        } catch (error) {
             console.error('Error during registration:', error);
             throw error; // Re-throw the error to be handled by global exception filter
         }
@@ -45,25 +46,47 @@ export class AuthController {
 
     @Post('login')
     async login(@Body() loginDto: LoginDto, @Res({ passthrough: true }) res: Response) {
-       try {
+        try {
 
-         const result = await this.authService.login(loginDto);
-        
-        // Set cookie for cookie-based authentication
-        res.status(HttpStatus.OK); // Set status to 200 OK
-        res.cookie('access_token', result.access_token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: 24 * 60 * 60 * 1000, // 24 hours
-            path: '/',
-        });
+            const result = await this.authService.login(loginDto);
 
-        return result;
-       } catch (error) {
+            // Set cookie for cookie-based authentication
+            res.status(HttpStatus.OK); // Set status to 200 OK
+            res.cookie('access_token', result.access_token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 24 * 60 * 60 * 1000, // 24 hours
+                path: '/',
+            });
+
+            return result;
+        } catch (error) {
             console.error('Error during login:', error);
             throw error; // Re-throw the error to be handled by global exception filter
-       }
+        }
+    }
+
+
+    @Post("google-login")
+    @UseGuards(GoogleAuthGuard)
+    async googleAuth(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+        console.log("Google Auth called", req.user);
+
+        if (!req.user) {
+            console.error('Google authentication failed: No user data found');
+            throw new Error('Google authentication failed: No user data found');
+        }
+        const createAuthDto: CreateAuthDto = {
+            ...req.user as CreateAuthDto, // Assuming req.user contains the necessary user data
+        };
+         const result = await this.authService.googleLogin(createAuthDto);
+        try {
+        } catch (error) {
+            console.error('Error during Google login:', error);
+            throw error; // Re-throw the error to be handled by global exception filter
+        }
+      
     }
 
 
@@ -71,18 +94,18 @@ export class AuthController {
     @Post(':id')
     @UseInterceptors(FileInterceptor('profile_pic')) // Assuming you want to handle file uploads
     // @Roles('SUPER_ADMIN') // Example role, adjust as needed
-    async getProfileCookie( @Req( ) req:Request , @Param('id') id: string , @Res({passthrough:true}) res: Response , @UploadedFile() file: Express.Multer.File) {
-        console.log("file",file)
+    async getProfileCookie(@Req() req: Request, @Param('id') id: string, @Res({ passthrough: true }) res: Response, @UploadedFile() file: Express.Multer.File) {
+        console.log("file", file)
         const url = req.url;
         const body = req.body;
         console.log("Request body", Object.keys(body)[0]);
         const uploadDir = `/public/uploads/${Object.keys(body)[0]}`; // Define your upload directory here
-        console.log("directry",path.join(process.cwd(),uploadDir)) // Example path for profile pictures
-        await this.checkDirExistAndCreate(path.join(process.cwd(),uploadDir));
+        console.log("directry", path.join(process.cwd(), uploadDir)) // Example path for profile pictures
+        await this.checkDirExistAndCreate(path.join(process.cwd(), uploadDir));
         console.log("Request URL:", url.split("/"));
-        
-        console.log("----------->",id)
-        console.log("+++++++++++",req.user);
+
+        console.log("----------->", id)
+        console.log("+++++++++++", req.user);
         res.end();
     }
 
@@ -104,7 +127,7 @@ export class AuthController {
     }
 
 
-    private async checkDirExistAndCreate(dirPath:string): Promise<boolean> {
+    private async checkDirExistAndCreate(dirPath: string): Promise<boolean> {
         try {
 
             await fs.promises.access(dirPath);
@@ -112,8 +135,8 @@ export class AuthController {
             return true;
         }
 
-         catch (error) {
-            if( error.code === 'ENOENT') {
+        catch (error) {
+            if (error.code === 'ENOENT') {
                 console.log(`Directory ${dirPath} does not exist. Creating...`);
                 await fs.promises.mkdir(dirPath, { recursive: true });
                 console.log(`Directory ${dirPath} created successfully.`);
