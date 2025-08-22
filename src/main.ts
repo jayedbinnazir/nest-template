@@ -10,7 +10,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  console.log("------------------>",path.join(__dirname,'../../'));
+  console.log("----------------->",path.join(__dirname,'../../'));
   
   // Enable cookie parsing
   app.use(cookieParser());
@@ -30,10 +30,11 @@ async function bootstrap() {
     transform: true,
   }));
   const appConfigService = app.get(ConfigService);
-  const globalPrefix = appConfigService.get<string>('globalPrefix') || 'api';
+  const globalPrefix = appConfigService.get<string>('app.globalPrefix') || 'api';
   app.setGlobalPrefix(globalPrefix);
   const port = appConfigService.get<number>('app.port') || 3000;
-  await app.listen(port, ()=>console.log(`application starts at port ${port}`));
+  const host = appConfigService.get<string>('app.host')  as string ;
+  await app.listen(port, host ,()=>console.log(`application starts at port ${host}:${port}`));
   // Log health check result after startup
   try {
     const healthUrl = `http://localhost:${port}/${globalPrefix}/health`;

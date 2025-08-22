@@ -33,8 +33,8 @@ import configuration from 'Config/configuration';
             console.log('NODE_ENV is in production mode, loading .env');
             return '.env';
           case 'test':
-            console.log('NODE_ENV is in test mode, loading .env and .env.test');
-            return ['.env', '.env.test'];
+            console.log(`NODE_ENV is in ${env} mode, loading  .env.${env}`);
+            return '.env.test';
           case 'development':
           case 'dev':
             console.log('NODE_ENV is in development mode, loading .env.dev');

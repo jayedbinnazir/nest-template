@@ -6,6 +6,7 @@ import { User } from '../entities/user.entity';
 import { DataSource, EntityManager, FindOperator, IsNull, Repository } from 'typeorm';
 import { FileUpload } from 'src/files/entities/file.entity';
 import { MulterConfigService } from '../../files/services/multer.config.service';
+import { Role } from 'src/role/entities/role.entity';
 
 
 @Injectable()

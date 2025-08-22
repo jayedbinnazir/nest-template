@@ -40,6 +40,7 @@ export class UserController {
     try {
       const userId = req.user['id']; // Assuming user ID is stored in the request object
       console.log('Finding user with ID:', userId);
+      console.log('Request user:', req.user);
       return {
         status: 'success',
         code: HttpStatusCode.Ok,
@@ -117,4 +118,23 @@ export class UserController {
       throw error; // Re-throw the error to be handled by global exception filter
     }
   }
+
+  // @Post("assignRole/:userId")
+  // async assignRole(
+  //   @Param('userId') userId: string,
+  //   @Body("roleId") roleId:string,  
+  // ) {
+  //   try {
+  //     const result = await this.userService.assignRoleToUser(userId, roleId);
+  //     return {
+  //       message: 'Role assigned successfully',
+  //       result,
+  //       status: 'success',
+  //       code: HttpStatusCode.Ok,
+  //     };
+  //   } catch (error) {
+  //     console.error('Error in assignRole:', error);
+  //     throw error; // Re-throw the error to be handled by global exception filter
+  //   }
+  // }
 }

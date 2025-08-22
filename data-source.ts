@@ -9,8 +9,6 @@ dotenv.config({ path: envFile });
 import { DataSource } from 'typeorm';
 
 
-
-
 const config = databaseConfig();
 
 console.log("config------------------>",config);
