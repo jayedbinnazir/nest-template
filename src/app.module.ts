@@ -18,6 +18,7 @@ import { ProductModule } from './product/product.module';
 import { FilesModule } from './files/files.module';
 import { CategoryModule } from './category/category.module';
 import { ProductCategoryModule } from './product-category/product-category.module';
+import { WsgatewayModule } from './wsgateway/wsgateway.module';
 import configuration from 'Config/configuration';
 
 
@@ -52,6 +53,7 @@ import configuration from 'Config/configuration';
       inject: [ConfigService],
       useFactory: ()=>AppDataSource.options,
     }),
+    WsgatewayModule,
     FilesModule, // Added missing AuthModule
     RoleModule,
     AwsS3Module,
@@ -61,6 +63,7 @@ import configuration from 'Config/configuration';
     ProductModule,
     CategoryModule,
     ProductCategoryModule,
+    
     
 
   ],
