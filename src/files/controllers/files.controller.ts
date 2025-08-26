@@ -16,13 +16,12 @@ import {
   ParseUUIDPipe
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
-import { FilesService } from '../services/files.service';
 import { UpdateFileDto } from '../dto/update-file.dto';
 import { JwtCookieGuard } from 'src/auth/guards/jwt-cookie.guard';
 
 @Controller('files')
 export class FilesController {
-  constructor(private readonly filesService: FilesService) {}
+  constructor() {}
 
   // // Upload single file
   // @Post('upload/single')

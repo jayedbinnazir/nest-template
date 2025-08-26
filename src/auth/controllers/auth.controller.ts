@@ -19,9 +19,14 @@ export class AuthController {
     @HttpCode(HttpStatus.CREATED) // 201 - Resource created successfully
     @UseInterceptors(FileInterceptor('profile_pic')) // Assuming you want to handle file uploads
     async register(@Body() createAuthDto: CreateAuthDto, @Res({ passthrough: true }) res: Response, @UploadedFile() file: Express.Multer.File) {
+
+        if(createAuthDto.password !== createAuthDto.confirmPassword){
+            throw new Error('Passwords do not match');
+        }
+
         if (file) {
             console.log("file in auth controller", file);
-            createAuthDto.file = file; // Assign the uploaded file to the DTO
+            createAuthDto.profile_picture = file; // Assign the uploaded file to the DTO
         }
 
         console.log("createAuthDto in controller=========>", createAuthDto);

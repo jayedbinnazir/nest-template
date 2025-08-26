@@ -8,8 +8,8 @@ import { Category } from '../../category/entities/category.entity';
 import { ProductCategoryService } from '../../product-category/services/product-category.service';
 import { CreateProductCategoryDto } from 'src/product-category/dto/create-product-category.dto';
 import { create } from 'domain';
-import { FilesService } from '../../files/services/files.service';
 import { ProductQueryDto } from '../dto/productQuery.dto';
+import { FilesProductService } from '../../files/services/file.product.service';
 
 @Injectable()
 export class ProductService {
@@ -18,7 +18,7 @@ export class ProductService {
     private readonly productRepository: Repository<Product>,
     private readonly dataSource: DataSource,
     private readonly productCategoryService: ProductCategoryService,
-    private readonly fileService: FilesService,
+    private readonly fileService: FilesProductService, // Inject the FilesService
   ) {}
 
   async createProduct(
@@ -65,9 +65,8 @@ export class ProductService {
       // Handle multiple file uploads - UPDATED THIS SECTION
       if (product_images && product_images.length > 0) {
         // Use the dedicated multiple files method
-        await this.fileService.saveMultipleFileRecords(
+        await this.fileService.saveMultipleFileProductRecords(
           product_images,
-          user_id,
           savedProduct.id,
           em,
         );

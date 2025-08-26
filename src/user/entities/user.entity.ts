@@ -13,8 +13,8 @@ import {
 import { Exclude } from 'class-transformer';
 import { BaseEntity } from '../../common/base.entity';
 import { AppUser } from '../../app_user/entities/app_user.entity';
-import { FileUpload } from '../../files/entities/file.entity';
 import { Product } from '../../product/entities/product.entity';
+import { FileUser } from '../../files/entities/file.user.entity';
 
 @Entity('users')
 @Index(['email']) // Index for email lookups
@@ -57,11 +57,11 @@ export class User extends BaseEntity {
   appUsers: AppUser[];
 
   // Multiple files relationship (replaces the single profile_picture)
-  @OneToMany(() => FileUpload, (file) => file.user, {
+  @OneToMany(() => FileUser, (file) => file.user, {
     cascade: ['insert', 'update', 'remove', 'soft-remove', 'recover'],
     nullable: true,
   })
-  profile_pictures?: FileUpload[];
+  profile_pictures?: FileUser[];
 
   @OneToMany(() => Product, (product) => product.user, {
     cascade: ['insert', 'update', 'remove', 'soft-remove', 'recover'],

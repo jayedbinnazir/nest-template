@@ -10,7 +10,7 @@ import { AuthUtils, PayLoad } from "../utils/auth";
 import { CreateAuthDto } from "../dto/create-auth.dto";
 import { LoginDto } from "../dto/login.dto";
 import { DataSource } from "typeorm";
-import { FilesService } from "../../files/services/files.service";
+import { FilesUserService } from "../../files/services/files.user.service";
 
 
 @Injectable()
@@ -23,7 +23,7 @@ export class AuthService {
         private readonly appUserService: AppUserService,
         //utils
         private readonly authUtils: AuthUtils,
-        private readonly fileService: FilesService
+        private readonly fileService: FilesUserService
 
     ) { }
 
@@ -33,7 +33,7 @@ export class AuthService {
         await queryRunner.connect();
         await queryRunner.startTransaction();
 
-        const { file } = data;
+        const { profile_picture } = data;
 
         try {
 
@@ -58,10 +58,9 @@ export class AuthService {
             }
 
            
-                await this.fileService.saveMultipleFileRecords(
-                    [file as Express.Multer.File],
+                await this.fileService.saveMultipleFileUserRecords(
+                    [profile_picture as Express.Multer.File],
                     user.id,
-                    undefined,
                     queryRunner.manager
                 );
             

@@ -4,9 +4,9 @@ import { UpdateUserDto } from '../dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../entities/user.entity';
 import { DataSource, EntityManager, FindOperator, IsNull, Repository } from 'typeorm';
-import { FileUpload } from 'src/files/entities/file.entity';
 import { MulterConfigService } from '../../files/services/multer.config.service';
 import { Role } from 'src/role/entities/role.entity';
+import { FileUser } from '../../files/entities/file.user.entity';
 
 
 @Injectable()
@@ -20,22 +20,30 @@ export class UserService {
   ) { }
 
   async createUser(data: CreateUserDto, manager?: EntityManager): Promise<User> {
+    const queryRunner = manager
+      ? undefined
+      : this.dataSource.createQueryRunner();
+    const em = manager ?? queryRunner!.manager;
 
-    const userRepo = manager ? manager.getRepository(User) : this.userRepository;
+    if (!manager) {
+      await queryRunner!.connect();
+      await queryRunner!.startTransaction();
+    }
     try {
-      const user = await userRepo.findOne({ where: { email: data.email } });
+      const user = await em.findOne(User, {
+        where: { email: data.email },
+        withDeleted: true, // Include soft-deleted users in the search
+      })
       if (user) {
         throw new Error('User with this email already exists');
       }
-      const newUser = userRepo.create(data);
-      return await userRepo.save(newUser);
+      const newUser = em.create(User, {
+        ...data,  
+      });
+      return await em.save(newUser);
     } catch (error) {
       throw new Error(`Error creating user: ${error.message}`);
     }
-  }
-
-  findAll() {
-    return `This action returns all user`;
   }
 
   async genericfindOne(filter: Partial<Record<keyof User, string>>, deleted?: boolean, manager?: EntityManager) {
@@ -137,7 +145,7 @@ export class UserService {
           file.isActive = false; // Deactivate the old profile picture
         }
 
-        const newFile = em?.create(FileUpload, {
+        const newFile = em?.create(FileUser, {
           ...updateUserDto.profile_picture,
           isActive: true,
           local_url: updateUserDto.profile_picture.path,
