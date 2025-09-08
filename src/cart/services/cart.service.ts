@@ -28,6 +28,131 @@ export class CartService {
         private readonly dataSource: DataSource
     ) { }
 
+    //it will happen when their will be sessionId or it will not happen, OK!!!-->Yes
+    async attachUserToCart(userId: string, sessionId: string, manager?: EntityManager): Promise<Cart> {
+        const queryRunner = manager ? undefined : this.dataSource.createQueryRunner();
+        const em = manager ?? queryRunner!.manager;
+
+        if (!manager) {
+            await queryRunner!.connect();
+            await queryRunner!.startTransaction();
+        }
+
+        try {
+            if (!userId || !sessionId) {
+                throw new Error('Both userId and sessionId are required');
+            }
+
+            // Find the guest cart by session_id
+            const guestCart = await em.findOne(Cart, {
+                where: { session_id: sessionId, user: undefined },
+                relations: ['cart_items'],
+            });
+
+            if (!guestCart) {
+                throw new NotFoundException('Guest cart not found');
+            }
+
+            guestCart.user = { id: userId } as any;
+            guestCart.session_id = null; // no longer needed
+            const updatedCart = await em.save(Cart, guestCart);
+
+            if (!manager) await queryRunner!.commitTransaction();
+            return updatedCart;
+
+        } catch (error) {
+            if (!manager) await queryRunner!.rollbackTransaction();
+            throw error;
+        } finally {
+            if (!manager) await queryRunner!.release();
+        }
+    }
+
+    //this is only available in login , when their is a sessionId for cart
+    // this is only available in login , when there is a sessionId for cart
+    async mergeCart(userId: string, sessionId: string, manager?: EntityManager): Promise<Cart> {
+        const queryRunner = manager ? undefined : this.dataSource.createQueryRunner();
+        const em = manager ?? queryRunner!.manager;
+
+        if (!manager) {
+            await queryRunner!.connect();
+            await queryRunner!.startTransaction();
+        }
+
+        try {
+            if (!userId || !sessionId) {
+                throw new Error('Both userId and sessionId are required');
+            }
+
+            // Find the guest cart by session_id
+            const guestCart = await em.findOne(Cart, {
+                where: { session_id: sessionId, user: undefined },
+                relations: ['cart_items', 'cart_items.product'],
+            });
+
+            if (!guestCart) {
+                throw new NotFoundException('Guest cart not found');
+            }
+
+            // Find the user's existing cart
+            let userCart = await em.findOne(Cart, {
+                where: { user: { id: userId }, session_id: undefined },
+                relations: ['cart_items', 'cart_items.product'],
+            });
+
+            if (!userCart) {
+                // ✅ If user has no cart, create a fresh one and copy guest items
+                userCart = em.create(Cart, {
+                    user: { id: userId } as any,
+                    session_id: null,
+                    cart_items: [],
+                });
+                await em.save(userCart);
+            }
+
+            // ✅ Merge guest cart items into user cart
+            for (const guestItem of guestCart.cart_items) {
+                const existingItem = userCart.cart_items.find(
+                    (ucItem) => ucItem.product.id === guestItem.product.id,
+                );
+
+                if (existingItem) {
+                    // If product already exists → increase quantity
+                    existingItem.quantity += guestItem.quantity;
+                    await em.save(existingItem);
+                } else {
+                    // If product does not exist → create a new CartItem for userCart
+                    const newCartItem = em.create(CartItems, {
+                        cart: userCart,
+                        product: guestItem.product,
+                        quantity: guestItem.quantity,
+                        priceAtAddTime: guestItem.priceAtAddTime,
+                    });
+                    await em.save(newCartItem);
+                }
+            }
+
+            // ❌ Delete the guest cart and its items (cleanup)
+            await em.remove(guestCart);
+
+            // Return merged cart with updated items
+            const mergedCart = await em.findOne(Cart, {
+                where: { id: userCart.id },
+                relations: ['cart_items', 'cart_items.product'],
+            });
+
+            if (!manager) await queryRunner!.commitTransaction();
+            return mergedCart!;
+        } catch (err) {
+            if (!manager) await queryRunner!.rollbackTransaction();
+            throw err;
+        } finally {
+            if (!manager) await queryRunner!.release();
+        }
+    }
+
+
+
     // Find or create cart for user/session
     async findOrCreateCart(createCartDto: CreateCartDto, manager?: EntityManager): Promise<Cart> {
 
@@ -158,9 +283,24 @@ export class CartService {
     async removeFromCart(
         productId: string,
         userId: string | null,
-        sessionId: string | null
+        sessionId: string | null,
+        manager?: EntityManager
     ): Promise<Cart> {
-        const cart = await this.findOrCreateCart({ user_id: userId, session_id: sessionId });
+
+         const queryRunner = manager
+            ? undefined
+            : this.dataSource.createQueryRunner();
+
+        const em = manager ?? queryRunner!.manager;
+
+        if (!manager) {
+            await queryRunner!.connect();
+            await queryRunner!.startTransaction();
+        }
+
+        try {
+
+             const cart = await this.findOrCreateCart({ user_id: userId, session_id: sessionId } , em);
 
         // Find the item index
         const itemIndex = cart.cart_items.findIndex(
@@ -173,74 +313,23 @@ export class CartService {
             cart.cart_items.splice(itemIndex, 1);
         }
 
-        return this.cartRepository.save(cart);
-    }
-
-
-    async attachUserToCart(userId: string, sessionId: string, manager?: EntityManager): Promise<Cart> {
-        const queryRunner = manager ? undefined : this.dataSource.createQueryRunner();
-        const em = manager ?? queryRunner!.manager;
-
+        const updatedCart = await this.cartRepository.save(cart);
         if (!manager) {
-            await queryRunner!.connect();
-            await queryRunner!.startTransaction();
+            await queryRunner!.commitTransaction();
         }
+        return updatedCart;
 
-        try {
-            if (!userId || !sessionId) {
-                throw new Error('Both userId and sessionId are required');
-            }
-
-            // Find the guest cart by session_id
-            const guestCart = await em.findOne(Cart, {
-                where: { session_id: sessionId, user: undefined },
-                relations: ['cart_items'],
-            });
-
-            if (!guestCart) {
-                throw new NotFoundException('Guest cart not found');
-            }
-
-            // Check if user already has a cart
-            const userCart = await em.findOne(Cart, {
-                where: { user: { id: userId } },
-                relations: ['cart_items'],
-            });
-
-            if (userCart) {
-                // ✅ Merge guest cart items into existing user cart
-                for (const item of guestCart.cart_items) {
-                    const existingItem = userCart.cart_items.find(ci => ci.product_id === item.product_id);
-                    if (existingItem) {
-                        existingItem.quantity += item.quantity;
-                    } else {
-                        userCart.cart_items.push(item);
-                    }
-                }
-
-                await em.remove(Cart, guestCart); // delete guest cart
-                const updatedCart = await em.save(Cart, userCart);
-
-                if (!manager) await queryRunner!.commitTransaction();
-                return updatedCart;
-            } else {
-                // ✅ Just attach userId to guest cart
-                guestCart.user = { id: userId } as any;
-                guestCart.session_id = null; // no longer needed
-                const updatedCart = await em.save(Cart, guestCart);
-
-                if (!manager) await queryRunner!.commitTransaction();
-                return updatedCart;
-            }
         } catch (error) {
-            if (!manager) await queryRunner!.rollbackTransaction();
+            if (!manager) {
+                await queryRunner!.rollbackTransaction();
+            }
             throw error;
         } finally {
-            if (!manager) await queryRunner!.release();
+            if (!manager) {
+                await queryRunner!.release();
+            }
         }
     }
-
-
 
 
 

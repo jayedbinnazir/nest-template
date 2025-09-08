@@ -36,7 +36,7 @@ export class CartController {
 
       const cart = await this.cartService.addToCart(addToCart);
 
-      if (!req.user ||!req.cookies.session_id) {
+      if (!req.user || !req.cookies.session_id) {
         res.cookie('session_id', cart.session_id, {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'prod',
@@ -54,15 +54,28 @@ export class CartController {
   }
 
 
+  @UseGuards(OptionalJwtAuthGuard)
+  @Delete('remove-from-cart/:productId')
   async removeFromCart(
-    @Param('cartItemId') cartItemId: string,
+    @Param('productId') productId: string,
     @Req() req,
     @Res({ passthrough: true }) res: Response
   ) {
-    const userId = req.user ? req.user.id : null; // ✅ userId if logged in, null if guest
-    const sessionId = req.cookies.session_id || null;
-    return this.cartService.removeFromCart(cartItemId, userId, sessionId);
+    try {
+      const userId = req.user ? req.user.id : null; // ✅ userId if logged in, null if guest
+      const sessionId = req.cookies.session_id || null;
+     
+      return await this.cartService.removeFromCart(productId, userId, sessionId);
+
+    } catch (err) {
+      console.error("Error in removeFromCart:", err);
+      throw err;
+    }
   }
+
+
+
+  
 
   // @Get()
   // findAll() {
