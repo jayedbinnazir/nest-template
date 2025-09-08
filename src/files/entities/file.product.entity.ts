@@ -8,7 +8,7 @@ import {
   RelationId,
 } from 'typeorm';
 
-@Entity('files')
+@Entity('producnt_files')
 export class FileProduct extends BaseEntity {
   @Column()
   fieldname: string; // Original name of the file as uploaded by the user

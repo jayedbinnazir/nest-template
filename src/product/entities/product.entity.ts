@@ -11,6 +11,7 @@ import {
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { FileProduct } from '../../files/entities/file.product.entity';
+import { CartItems } from '../../cart/entities/cart_item.entity';
 
 @Entity({ name: 'products' })
 export class Product extends BaseEntity {
@@ -66,4 +67,10 @@ export class Product extends BaseEntity {
   })
     product_images?: FileProduct[]; // Assuming multiple images can be associated with a product
 
+  @OneToMany(()=>CartItems , (c_i)=> c_i.product , {
+    cascade: ['insert', 'update', 'remove', 'soft-remove', 'recover'],
+    nullable: true,
+  })
+  cart_items?: CartItems[];
+ 
 }

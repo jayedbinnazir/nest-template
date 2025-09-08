@@ -19,7 +19,7 @@ export class ProductService {
     private readonly dataSource: DataSource,
     private readonly productCategoryService: ProductCategoryService,
     private readonly fileService: FilesProductService, // Inject the FilesService
-  ) {}
+  ) { }
 
   async createProduct(
     createProductDto: CreateProductDto,
@@ -48,7 +48,7 @@ export class ProductService {
       });
       if (!category)
         throw new Error(`Category with ID ${category_id} not found`);
-      console.log('category in service', category);
+        console.log('category in service', category);
 
       // Create product with direct category_id reference
       const productRepo = em.getRepository(Product);
@@ -124,7 +124,7 @@ export class ProductService {
       }
     }
   }
-  
+
   async findAllProduct(options?: ProductQueryDto) {
     const {
       filter,
@@ -218,6 +218,7 @@ export class ProductService {
       const product = await this.productRepository.findOne({
         where: { id },
         withDeleted: withDeleted,
+        relations:["product_images","product_category","product_category.category"]
       });
       if (!product) {
         throw new Error(`Product with ID ${id} not found`);

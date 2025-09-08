@@ -15,6 +15,7 @@ import { BaseEntity } from '../../common/base.entity';
 import { AppUser } from '../../app_user/entities/app_user.entity';
 import { Product } from '../../product/entities/product.entity';
 import { FileUser } from '../../files/entities/file.user.entity';
+import { Cart } from '../../cart/entities/cart.entity';
 
 @Entity('users')
 @Index(['email']) // Index for email lookups
@@ -69,4 +70,9 @@ export class User extends BaseEntity {
     nullable: true,
   })
   products: Product[];
+
+
+  @OneToOne(()=>Cart , (cart)=>cart.user ,  {cascade:true , nullable:true})
+  cart:Cart ;
+
 }

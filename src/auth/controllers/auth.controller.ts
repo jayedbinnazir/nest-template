@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, UseGuards, Res, HttpStatus, HttpCode, Param, Req, UseInterceptors, UploadedFile } from "@nestjs/common";
+import { Controller, Post, Body, UseGuards, Res, HttpStatus, HttpCode, Param, Req, UseInterceptors, UploadedFile } from "@nestjs/common";
 import { AuthService } from "../services/auth.service";
 import { CreateAuthDto } from "../dto/create-auth.dto";
 import { LoginDto } from "../dto/login.dto";
@@ -18,7 +18,9 @@ export class AuthController {
     @Post('register')
     @HttpCode(HttpStatus.CREATED) // 201 - Resource created successfully
     @UseInterceptors(FileInterceptor('profile_pic')) // Assuming you want to handle file uploads
-    async register(@Body() createAuthDto: CreateAuthDto, @Res({ passthrough: true }) res: Response, @UploadedFile() file: Express.Multer.File) {
+    async register(@Body() createAuthDto: CreateAuthDto,@Req() req , @Res({ passthrough: true }) res: Response, @UploadedFile() file: Express.Multer.File) {
+
+        let sessionId = req.cookies?.session_id || null;
 
         if(createAuthDto.password !== createAuthDto.confirmPassword){
             throw new Error('Passwords do not match');

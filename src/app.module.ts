@@ -19,6 +19,8 @@ import { FilesModule } from './files/files.module';
 import { CategoryModule } from './category/category.module';
 import { ProductCategoryModule } from './product-category/product-category.module';
 import { WsgatewayModule } from './wsgateway/wsgateway.module';
+import { CartModule } from './cart/cart.module';
+import { OrderModule } from './order/order.module';
 import configuration from 'Config/configuration';
 
 
@@ -63,6 +65,8 @@ import configuration from 'Config/configuration';
     ProductModule,
     CategoryModule,
     ProductCategoryModule,
+    CartModule,
+    OrderModule,
     
     
 
