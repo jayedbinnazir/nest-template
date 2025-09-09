@@ -44,12 +44,12 @@ export class Order extends BaseEntity {
   @Column({ type: 'varchar', length: 255, nullable: true })
   shipping_address?: string;
 
-@Column({
-  type: 'enum',
-  enum: PaymentMethod,
-  nullable: true,
-})
-payment_method?: PaymentMethod;
+  @Column({
+    type: 'enum',
+    enum: PaymentMethod,
+    nullable: true,
+  })
+  payment_method?: PaymentMethod;
 
   @Column({ type: 'boolean', default: false })
   isPaid: boolean;
