@@ -10,6 +10,8 @@ import { CreateCartDto } from '../dto/create-cart.dto';
 import { strict } from 'assert';
 import { AddToCartDto } from '../dto/addToCart.dto';
 import { UpdateCartDto } from '../dto/update-cart.dto';
+import { UpdateCartItemDto } from '../dto/updateCartItem.dto';
+import { RemoveCartItemDto } from '../dto/removeItem.dto';
 
 // Example: "9b1de4a1f7c44e21a9c7b2c2c8d13f93"
 
@@ -279,18 +281,12 @@ export class CartService {
         }
     }
 
-    // Remove item from cart
-    async removeFromCart(
-        productId: string,
-        userId: string | null,
-        sessionId: string | null,
+
+    async updateCartItemQuantity(
+        updateCartItemDto: UpdateCartItemDto,
         manager?: EntityManager
     ): Promise<Cart> {
-
-         const queryRunner = manager
-            ? undefined
-            : this.dataSource.createQueryRunner();
-
+        const queryRunner = manager ? undefined : this.dataSource.createQueryRunner();
         const em = manager ?? queryRunner!.manager;
 
         if (!manager) {
@@ -298,38 +294,114 @@ export class CartService {
             await queryRunner!.startTransaction();
         }
 
+        const { cartId, productId, quantity } = updateCartItemDto;
+
         try {
-
-             const cart = await this.findOrCreateCart({ user_id: userId, session_id: sessionId } , em);
-
-        // Find the item index
-        const itemIndex = cart.cart_items.findIndex(
-            item => item.product_id === productId
-        );
-
-        if (itemIndex > -1) {
-            // Remove item
-            await this.cartItemsRepository.remove(cart.cart_items[itemIndex]);
-            cart.cart_items.splice(itemIndex, 1);
-        }
-
-        const updatedCart = await this.cartRepository.save(cart);
-        if (!manager) {
-            await queryRunner!.commitTransaction();
-        }
-        return updatedCart;
-
-        } catch (error) {
-            if (!manager) {
-                await queryRunner!.rollbackTransaction();
+            if (quantity < 0) {
+                throw new Error('Quantity cannot be negative');
             }
+
+            // Find the cart
+            const cart = await em.findOne(Cart, {
+                where: { id: cartId },
+                relations: ['cart_items', 'cart_items.product'],
+            });
+
+            if (!cart) {
+                throw new NotFoundException('Cart not found');
+            }
+
+            // Find the cart item
+            const cartItem = cart.cart_items.find(
+                (item) => item.product.id === productId
+            );
+
+            if (!cartItem) {
+                throw new NotFoundException('Cart item not found');
+            }
+
+            if (quantity === 0) {
+                // If new quantity = 0 → remove item completely
+                await em.remove(cartItem);
+                cart.cart_items = cart.cart_items.filter(
+                    (item) => item.product.id !== productId
+                );
+            } else {
+                // Update quantity
+                cartItem.quantity = quantity;
+                await em.save(cartItem);
+            }
+
+            if (!manager) {
+                await queryRunner!.commitTransaction();
+            }
+            return cart;
+        } catch (error) {
+            if (!manager) await queryRunner!.rollbackTransaction();
             throw error;
         } finally {
-            if (!manager) {
-                await queryRunner!.release();
-            }
+            if (!manager) await queryRunner!.release();
         }
     }
+
+
+    async removeFromCart(
+        removeCartItemDto: RemoveCartItemDto,
+        manager?: EntityManager
+    ): Promise<Cart> {
+        const queryRunner = manager ? undefined : this.dataSource.createQueryRunner();
+        const em = manager ?? queryRunner!.manager;
+
+        if (!manager) {
+            await queryRunner!.connect();
+            await queryRunner!.startTransaction();
+        }
+
+        const { cartId, productId } = removeCartItemDto;
+
+        try {
+            // Get the cart either by cartId or by (userId / sessionId)
+            let cart: Cart | null = null;
+
+            if (cartId) {
+                cart = await em.findOne(Cart, {
+                    where: { id: cartId },
+                    relations: ['cart_items', 'cart_items.product'],
+                });
+            }
+
+            if (!cart) {
+                throw new NotFoundException('Cart not found');
+            }
+
+            // Find the cart item
+            const cartItem = cart.cart_items.find(
+                (item) => item.product.id === productId
+            );
+
+            if (!cartItem) {
+                throw new NotFoundException('Cart item not found');
+            }
+
+            // Remove the item
+            await em.remove(cartItem);
+            cart.cart_items = cart.cart_items.filter(
+                (item) => item.product.id !== productId
+            );
+
+            // Save the updated cart
+            const updatedCart = await em.save(cart);
+
+            if (!manager) await queryRunner!.commitTransaction();
+            return updatedCart;
+        } catch (error) {
+            if (!manager) await queryRunner!.rollbackTransaction();
+            throw error;
+        } finally {
+            if (!manager) await queryRunner!.release();
+        }
+    }
+
 
 
 

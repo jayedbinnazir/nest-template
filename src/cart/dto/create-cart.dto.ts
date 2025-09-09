@@ -11,6 +11,11 @@ export class CreateCartDto {
 
     @IsOptional()
     @IsString()
-    session_id?: string | null; // Optional session ID for guest users  
+    session_id?: string | null; // Optional session ID for guest users
+    
+
+    @IsOptional()
+    @IsArray()
+    items?: CartItems[]; // Array of cart items
 
 }
