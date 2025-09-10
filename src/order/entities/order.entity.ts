@@ -21,6 +21,7 @@ export enum PaymentMethod {
 
 @Entity('orders')
 export class Order extends BaseEntity {
+  
   @ManyToOne(() => User, (user) => user, { nullable: true })
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
   user?: User | null;
