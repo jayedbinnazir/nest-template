@@ -23,6 +23,7 @@ import { CartModule } from './cart/cart.module';
 import { OrderModule } from './order/order.module';
 import { CommentsModule } from './comments/comments.module';
 import { RatingsModule } from './ratings/ratings.module';
+import { ReactionsModule } from './reactions/reactions.module';
 import configuration from 'Config/configuration';
 
 
@@ -71,6 +72,7 @@ import configuration from 'Config/configuration';
     OrderModule,
     CommentsModule,
     RatingsModule,
+    ReactionsModule,
     
     
 
