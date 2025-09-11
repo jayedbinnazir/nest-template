@@ -1,35 +1,57 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
 import { RatingsService } from '../services/ratings.service';
 import { CreateRatingDto } from '../dto/create-rating.dto';
 import { UpdateRatingDto } from '../dto/update-rating.dto';
-
+import { OptionalJwtAuthGuard } from '../../auth/guards/jwt-cookie-optional.guard';
+import { v4 as uuidv4 } from 'uuid';   // ✅ import uuid v4
 
 @Controller('ratings')
 export class RatingsController {
   constructor(private readonly ratingsService: RatingsService) {}
 
+
+  @UseGuards(OptionalJwtAuthGuard)
   @Post()
-  create(@Body() createRatingDto: CreateRatingDto) {
-    return this.ratingsService.create(createRatingDto);
+  async create(@Body() createRatingDto: CreateRatingDto , @Req() req) {
+    let userId = req.user ? req.user.id : null;
+    let sessionId: string | null = req.cookies.session_id as string | null;
+
+    if(userId) {
+      createRatingDto.user_id = userId;
+    } else if (!userId && sessionId) {
+      createRatingDto.session_id = sessionId;
+    } else if (!userId && !sessionId) {
+      sessionId = uuidv4()
+      createRatingDto.session_id = sessionId;
+    }
+    try {
+      const rating = await this.ratingsService.rate(createRatingDto);
+      return { message: "Rating created successfully", rating };
+    } catch (err) {
+      console.error("Error in create rating:", err);
+      throw err;
+    }
   }
 
-  @Get()
-  findAll() {
-    return this.ratingsService.findAll();
-  }
+  @UseGuards(OptionalJwtAuthGuard)
+  @Patch("update")
+  async update(@Body() updateRatingDto:UpdateRatingDto , @Req() req) {
+    let userId = req.user ? req.user.id : null;
+    let sessionId: string | null = req.cookies.session_id as string | null;
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.ratingsService.findOne(+id);
+    if(userId) {
+      updateRatingDto.user_id = userId;
+    } else if (!userId && sessionId) {
+      updateRatingDto.session_id = sessionId;
+    } 
+    try {
+      const rating = await this.ratingsService.updateRating(updateRatingDto);
+      return { message: "Rating created successfully", rating };
+    } catch (err) {
+      console.error("Error in create rating:", err);
+      throw err;
+    }
   }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateRatingDto: UpdateRatingDto) {
-    return this.ratingsService.update(+id, updateRatingDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.ratingsService.remove(+id);
-  }
+  
+  
 }

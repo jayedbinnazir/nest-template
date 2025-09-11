@@ -16,7 +16,7 @@ export class CommentsService {
     private readonly commentRepository: Repository<ProductComment>
   ) { }
 
-  async createComment(createCommentDto: CreateCommentDto, manager?: EntityManager) {
+async createComment(createCommentDto: CreateCommentDto, manager?: EntityManager) {
 
     let queryRunner = manager ? undefined : this.datasource.createQueryRunner()
     let em = manager ?? queryRunner!.manager;
@@ -89,6 +89,38 @@ async getCommentsByProduct(productId: string) {
     console.error("Problem with fetching comments:", err.message);
     throw err;
   }
+}
+
+
+async updateComment(commentId:string ,content:string ,manager?:EntityManager){
+     let queryRunner = manager ? undefined : this.datasource.createQueryRunner()
+    let em = manager ?? queryRunner!.manager;
+
+    if (queryRunner!.manager) {
+      await queryRunner?.connect()
+      await queryRunner?.startTransaction()
+    }
+    try {
+      const comment = await em.findOne(ProductComment , {
+        where:{id:commentId}
+      })
+
+      if(!comment) {
+        throw new NotFoundException("Comment not found") ;
+      }
+
+      comment.content = content ;
+      const updated = await em.save(ProductComment , comment) ;
+      if (!manager) await queryRunner!.commitTransaction();
+      return updated ;
+
+    } catch (err) {
+      if (!manager) await queryRunner!.rollbackTransaction();
+      console.error("Error in CommentsService updateComment:", err);
+      throw err;
+    } finally {
+      if(!manager) await queryRunner!.release();
+    }
 }
 
 

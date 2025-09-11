@@ -63,23 +63,21 @@ export class CommentsController {
 
   }
 
-  @Get()
-  findAll() {
-    return this.commentsService.findAll();
-  }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.commentsService.findOne(+id);
+    @Patch(':commentId')
+    async updateComment(
+      @Param('commentId', new ParseUUIDPipe()) commentId: string,
+      @Body() content: string,
+    ) {
+      try {
+        const updatedComment = await this.commentsService.updateComment(commentId, content);
+        return {
+          message: 'Comment updated successfully',
+          comment: updatedComment,
+        };
+      } catch (err) {
+        console.log(err);
+        throw err;
+      }
+    }
   }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCommentDto: UpdateCommentDto) {
-    return this.commentsService.update(+id, updateCommentDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.commentsService.remove(+id);
-  }
-}

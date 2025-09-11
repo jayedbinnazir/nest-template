@@ -3,11 +3,11 @@ import { RatingsController } from './controllers/ratings.controller';
 import { RatingsService } from './services/ratings.service';
 import { Type } from 'class-transformer';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Rating } from './entities/rating.entity';
+import { ProductRating } from './entities/rating.entity';
 
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Rating])],
+  imports: [TypeOrmModule.forFeature([ProductRating])],
   controllers: [RatingsController],
   providers: [RatingsService],
   exports: [RatingsService],
