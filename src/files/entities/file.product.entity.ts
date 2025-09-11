@@ -1,18 +1,15 @@
 import { Product } from '../../product/entities/product.entity';
 import { BaseEntity } from '../../common/base.entity';
-import { User } from '../../user/entities/user.entity';
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
   ManyToOne,
   JoinColumn,
   RelationId,
-  Index,
 } from 'typeorm';
 
-@Entity('files')
-export class FileUpload extends BaseEntity {
+@Entity('producnt_files')
+export class FileProduct extends BaseEntity {
   @Column()
   fieldname: string; // Original name of the file as uploaded by the user
 
@@ -38,19 +35,6 @@ export class FileUpload extends BaseEntity {
   @Column({ type: 'varchar', nullable: true })
   public_url: string | null;
 
-  @ManyToOne(() => User, (user) => user.profile_pictures, {
-    onDelete: 'CASCADE',
-    nullable: true,
-  })
-  @JoinColumn({
-    name: 'user_id',
-    referencedColumnName: 'id',
-  })
-  user?: User;
-
-  @RelationId((file: FileUpload) => file.user)
-  user_id?: string;
-
   @ManyToOne(() => Product, (product) => product.product_images, {
     nullable: true,
     onDelete: 'CASCADE',
@@ -58,6 +42,6 @@ export class FileUpload extends BaseEntity {
   @JoinColumn({ name: 'product_id' })
   product?: Product;
 
-  @RelationId((file: FileUpload) => file.product)
+  @RelationId((file: FileProduct) => file.product)
   product_id: string; // This will hold the ID of the associated product image
 }

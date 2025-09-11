@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, UseGuards, Res, HttpStatus, HttpCode, Param, Req, UseInterceptors, UploadedFile } from "@nestjs/common";
+import { Controller, Post, Body, UseGuards, Res, HttpStatus, HttpCode, Param, Req, UseInterceptors, UploadedFile } from "@nestjs/common";
 import { AuthService } from "../services/auth.service";
 import { CreateAuthDto } from "../dto/create-auth.dto";
 import { LoginDto } from "../dto/login.dto";
@@ -10,18 +10,30 @@ import * as fs from 'fs';
 import * as path from "path";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { GoogleAuthGuard } from "../guards/google-auth.guard";
+import { CartService } from "../../cart/services/cart.service";
 
 @Controller('auth')
 export class AuthController {
-    constructor(private readonly authService: AuthService) { }
+    constructor(private readonly authService: AuthService
+    ) { }
 
     @Post('register')
     @HttpCode(HttpStatus.CREATED) // 201 - Resource created successfully
     @UseInterceptors(FileInterceptor('profile_pic')) // Assuming you want to handle file uploads
-    async register(@Body() createAuthDto: CreateAuthDto, @Res({ passthrough: true }) res: Response, @UploadedFile() file: Express.Multer.File) {
+    async register(@Body() createAuthDto: CreateAuthDto, @Req() req, @Res({ passthrough: true }) res: Response, @UploadedFile() file: Express.Multer.File) {
+
+        let sessionId = req.cookies?.session_id || null;
+        if (sessionId) {
+            createAuthDto.session_id = sessionId
+        }
+
+        if (createAuthDto.password !== createAuthDto.confirmPassword) {
+            throw new Error('Passwords do not match');
+        }
+
         if (file) {
             console.log("file in auth controller", file);
-            createAuthDto.file = file; // Assign the uploaded file to the DTO
+            createAuthDto.profile_picture = file; // Assign the uploaded file to the DTO
         }
 
         console.log("createAuthDto in controller=========>", createAuthDto);
@@ -45,8 +57,13 @@ export class AuthController {
     }
 
     @Post('login')
-    async login(@Body() loginDto: LoginDto, @Res({ passthrough: true }) res: Response) {
+    async login(@Body() loginDto: LoginDto,@Req() req ,@Res({ passthrough: true }) res: Response) {
         try {
+
+            const sessionId = req.cookies?.session_id || null;
+            if (sessionId) {
+                loginDto.session_id = sessionId
+            }
 
             const result = await this.authService.login(loginDto);
 
@@ -80,13 +97,13 @@ export class AuthController {
         const createAuthDto: CreateAuthDto = {
             ...req.user as CreateAuthDto, // Assuming req.user contains the necessary user data
         };
-         const result = await this.authService.googleLogin(createAuthDto);
+        const result = await this.authService.googleLogin(createAuthDto);
         try {
         } catch (error) {
             console.error('Error during Google login:', error);
             throw error; // Re-throw the error to be handled by global exception filter
         }
-      
+
     }
 
 

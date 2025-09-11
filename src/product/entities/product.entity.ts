@@ -3,17 +3,15 @@ import { ProductCategory } from '../../product-category/entities/product-categor
 import { BaseEntity } from '../../common/base.entity';
 import {
     Entity,
-    PrimaryGeneratedColumn,
     Column,
     ManyToOne,
-    CreateDateColumn,
-    UpdateDateColumn,
     JoinColumn,
     RelationId,
     OneToMany,
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
-import { FileUpload } from '../../files/entities/file.entity';
+import { FileProduct } from '../../files/entities/file.product.entity';
+import { CartItems } from '../../cart/entities/cart_item.entity';
 
 @Entity({ name: 'products' })
 export class Product extends BaseEntity {
@@ -63,10 +61,16 @@ export class Product extends BaseEntity {
     user_id: string;
 
 
-    @OneToMany(()=> FileUpload , (file)=> file.product ,{
+    @OneToMany(()=> FileProduct , (file)=> file.product ,{
     cascade: ['insert', 'update', 'remove', 'soft-remove', 'recover'],
     nullable: true,
   })
-    product_images?: FileUpload[]; // Assuming multiple images can be associated with a product
+    product_images?: FileProduct[]; // Assuming multiple images can be associated with a product
 
+  @OneToMany(()=>CartItems , (c_i)=> c_i.product , {
+    cascade: ['insert', 'update', 'remove', 'soft-remove', 'recover'],
+    nullable: true,
+  })
+  cart_items?: CartItems[];
+ 
 }

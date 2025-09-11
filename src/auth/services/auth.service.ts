@@ -9,8 +9,9 @@ import { AppUserService } from "../../app_user/services/app_user.service";
 import { AuthUtils, PayLoad } from "../utils/auth";
 import { CreateAuthDto } from "../dto/create-auth.dto";
 import { LoginDto } from "../dto/login.dto";
-import { DataSource } from "typeorm";
-import { FilesService } from "../../files/services/files.service";
+import { DataSource, EntityManager } from "typeorm";
+import { FilesUserService } from "../../files/services/files.user.service";
+import { CartService } from "../../cart/services/cart.service";
 
 
 @Injectable()
@@ -23,7 +24,10 @@ export class AuthService {
         private readonly appUserService: AppUserService,
         //utils
         private readonly authUtils: AuthUtils,
-        private readonly fileService: FilesService
+        private readonly fileService: FilesUserService,
+
+        //cart
+        private readonly cartService: CartService
 
     ) { }
 
@@ -33,7 +37,7 @@ export class AuthService {
         await queryRunner.connect();
         await queryRunner.startTransaction();
 
-        const { file } = data;
+        const { profile_picture } = data;
 
         try {
 
@@ -51,20 +55,23 @@ export class AuthService {
                 throw new Error('User creation failed');
             }
 
+            if (data.session_id && user.id) {
+                await this.cartService.attachUserToCart(user.id, data.session_id, queryRunner.manager)
+            }
+
             console.log('User created:', user);
             const role = await this.roleService.findByName("CUSTOMER");
             if (!role) {
                 throw new Error('Role not found');
             }
 
-           
-                await this.fileService.saveMultipleFileRecords(
-                    [file as Express.Multer.File],
-                    user.id,
-                    undefined,
-                    queryRunner.manager
-                );
-            
+
+            await this.fileService.saveMultipleFileUserRecords(
+                [profile_picture as Express.Multer.File],
+                user.id,
+                queryRunner.manager
+            );
+
 
 
             const appUser = await this.appUserService.createAppUser({
@@ -129,18 +136,28 @@ export class AuthService {
     }
 
     async login(loginDto: LoginDto) {
+
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+
         try {
 
-            const userRepo = this.dataSource.getRepository(User);
+            const userRepo = queryRunner!.manager.getRepository(User);
             // Find user by email
 
-            const user  = await userRepo.findOne({
+            const user = await userRepo.findOne({
                 where: { email: loginDto.email },
                 relations: ['appUsers', 'appUsers.role', 'profile_pictures'],
             });
-            
+
             if (!user) {
                 throw new Error('Invalid credentials');
+            }
+
+            if (loginDto.session_id && user.id) {
+                await this.cartService.attachUserToCart(user.id, loginDto.session_id, queryRunner!.manager)
             }
 
             // Verify password
@@ -198,12 +215,12 @@ export class AuthService {
     async googleLogin(data: CreateAuthDto) {
 
         try {
-            const { providerId , email } = data;
+            const { providerId, email } = data;
             if (!email) {
                 throw new Error('Email is required for Google login');
             }
             // Check if user already exists
-            let user: CreateAuthDto | any = await this.userService.genericfindOne({providerId: providerId as string, email: email}, false);
+            let user: CreateAuthDto | any = await this.userService.genericfindOne({ providerId: providerId as string, email: email }, false);
 
             if (!user) {
                 // Create new user if not exists
@@ -223,10 +240,10 @@ export class AuthService {
             }
 
 
-           
+
             // Generate JWT token
             const roles: string[] = [];
-           
+
             for (const appUserRecord of appUser) {
                 const roleEntity = await appUserRecord.role; // Each appUserRecord has one role
                 if (roleEntity) {

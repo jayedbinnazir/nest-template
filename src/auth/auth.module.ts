@@ -11,6 +11,7 @@ import { AuthUtils } from './utils/auth';
 import { MulterModule } from '@nestjs/platform-express';
 import { ConfigModule } from '@nestjs/config';
 import { MulterConfigService } from 'src/files/services/multer.config.service';
+import { CartModule } from '../cart/cart.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { MulterConfigService } from 'src/files/services/multer.config.service';
       signOptions: { expiresIn: '24h' },
     }),
     ConfigModule,
+    CartModule,
     AppUserModule,
     UserModule,
     RoleModule,

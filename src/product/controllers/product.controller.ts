@@ -50,9 +50,10 @@ export class ProductController {
     }
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.productService.findOneProduct(id);
+  @Get('details/:id')
+  findOne(@Param('id') id: string , @Query() query:{ withDeleted?: string}) {
+    const isDeleted = query.withDeleted === 'true';
+    return this.productService.findOneProduct(id , isDeleted);
   }
 
   // @Patch(':id')
