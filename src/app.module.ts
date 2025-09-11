@@ -24,6 +24,7 @@ import { OrderModule } from './order/order.module';
 import { CommentsModule } from './comments/comments.module';
 import { RatingsModule } from './ratings/ratings.module';
 import { ReactionsModule } from './reactions/reactions.module';
+import { MailModule } from './mail/mail.module';
 import configuration from 'Config/configuration';
 
 
@@ -73,6 +74,7 @@ import configuration from 'Config/configuration';
     CommentsModule,
     RatingsModule,
     ReactionsModule,
+    MailModule,
     
     
 
