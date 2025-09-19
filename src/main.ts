@@ -6,9 +6,31 @@ import * as cookieParser from 'cookie-parser';
 import axios from 'axios';
 import * as path from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+
 
 async function bootstrap() {
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+   // ✅ ADD THIS - WITH IDENTICAL CONFIGURATION
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.RMQ,
+    options: {
+      urls: ['amqp://guest:guest@localhost:5672'],
+      queue: 'mail_queue',
+      persistent: true, // MUST match
+      queueOptions: {
+        durable: true,
+        arguments: {
+          'x-dead-letter-exchange': '',
+          'x-dead-letter-routing-key': 'mail_queue.dlq',
+          'x-message-ttl': 60000, // MUST match
+        },
+      },
+    },
+  });
+
 
   console.log("----------------->",path.join(__dirname,'../../'));
   
@@ -32,6 +54,10 @@ async function bootstrap() {
   const appConfigService = app.get(ConfigService);
   const globalPrefix = appConfigService.get<string>('app.globalPrefix') || 'api';
   app.setGlobalPrefix(globalPrefix);
+  
+  
+  
+  await app.startAllMicroservices();
   const port = appConfigService.get<number>('app.port') || 3000;
   const host = appConfigService.get<string>('app.host')  as string ;
   await app.listen(port, host ,()=>console.log(`application starts at port ${host}:${port}`));

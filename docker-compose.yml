@@ -1,0 +1,59 @@
+version: '3.9'  # Compose file format version
+
+networks:
+  redis-network:  # Custom bridge network for Redis and RedisInsight
+    driver: bridge
+
+services:
+  # =====================
+  # Redis server
+  # =====================
+  redis:
+    image: redis:alpine
+    container_name: redis-container
+    restart: always
+    command: ["redis-server", "--appendonly", "yes"] # Enable AOF persistence
+    ports:
+      - "6379:6379"  # Host port -> container port
+    volumes:
+      - redis-data:/data  # Persist Redis data even if container is removed
+    networks:
+      - redis-network
+
+  # =====================
+  # RedisInsight GUI
+  # =====================
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: redisinsight
+    restart: always
+    ports:
+      - "5540:5540"  # Access GUI from browser: http://localhost:5540
+    depends_on:
+      - redis  # Ensure Redis starts first
+    networks:
+      - redis-network
+
+   # =====================
+  # RabbitMQ server
+  # =====================
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"   # RabbitMQ AMQP connection
+      - "15672:15672" # RabbitMQ Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_VHOST: / # Add default vhost
+    networks:
+      - redis-network
+
+
+# =====================
+# Volumes for data persistence
+# =====================
+volumes:
+  redis-data:

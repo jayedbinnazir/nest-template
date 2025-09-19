@@ -26,6 +26,8 @@ import { RatingsModule } from './ratings/ratings.module';
 import { ReactionsModule } from './reactions/reactions.module';
 import { MailModule } from './mail/mail.module';
 import configuration from 'Config/configuration';
+import { ClientsModule, Transport } from '@nestjs/microservices';
+
 
 
 @Module({
@@ -76,13 +78,11 @@ import configuration from 'Config/configuration';
     ReactionsModule,
     MailModule,
     
-    
-
   ],
-  controllers: [AppController, HealthController],
+  controllers: [AppController, HealthController  ],
   providers: [AppService,{
     provide: APP_FILTER,
     useClass: CustomExceptionFilter,
-  }],
+  }  ],
 })
 export class AppModule {}
